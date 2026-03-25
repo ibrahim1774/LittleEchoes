@@ -9,10 +9,16 @@ export function Splash() {
   useEffect(() => {
     if (state.isLoading) return;
     const timer = setTimeout(() => {
-      navigate(state.isOnboarded ? '/home' : '/onboarding', { replace: true });
+      if (state.user) {
+        navigate('/home', { replace: true });
+      } else if (state.isOnboarded) {
+        navigate('/pricing', { replace: true });
+      } else {
+        navigate('/onboarding', { replace: true });
+      }
     }, 1500);
     return () => clearTimeout(timer);
-  }, [state.isLoading, state.isOnboarded, navigate]);
+  }, [state.isLoading, state.isOnboarded, state.user, navigate]);
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-echo-cream dot-pattern px-8">

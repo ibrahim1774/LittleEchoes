@@ -61,6 +61,20 @@ export async function deleteChild(id: string): Promise<void> {
   await db.children.delete(id);
 }
 
+// ── Custom Questions ──────────────────────────────────────────
+
+export async function saveCustomQuestion(question: Question): Promise<void> {
+  await db.questions.put(question);
+}
+
+export async function deleteQuestion(id: string): Promise<void> {
+  await db.questions.delete(id);
+}
+
+export async function getCustomQuestions(parentId: string): Promise<Question[]> {
+  return db.questions.where('createdBy').equals(parentId).toArray();
+}
+
 // ── Reset ─────────────────────────────────────────────────────
 
 export async function clearAllData(): Promise<void> {

@@ -5,12 +5,16 @@ import { BottomTabBar } from '@/components/BottomTabBar';
 // Screens
 import { Splash } from '@/screens/Splash';
 import { OnboardingFlow } from '@/screens/onboarding/OnboardingFlow';
+import { PricingScreen } from '@/screens/onboarding/PricingScreen';
 import { ParentSetup } from '@/screens/ParentSetup';
 import { AddChild } from '@/screens/AddChild';
 import { Home } from '@/screens/Home';
 import { TodayScreen } from '@/screens/today/TodayScreen';
 import { Memories } from '@/screens/Memories';
 import { Settings } from '@/screens/Settings';
+import { PaymentSuccessScreen } from '@/screens/auth/PaymentSuccessScreen';
+import { SignupScreen } from '@/screens/auth/SignupScreen';
+import { SigninScreen } from '@/screens/auth/SigninScreen';
 
 const TAB_ROUTES = ['/home', '/today', '/memories', '/settings'];
 
@@ -32,6 +36,10 @@ function AppShell() {
       <Routes>
         <Route path="/" element={<Splash />} />
         <Route path="/onboarding" element={<OnboardingFlow />} />
+        <Route path="/pricing" element={<PricingScreen />} />
+        <Route path="/payment-success" element={<PaymentSuccessScreen />} />
+        <Route path="/signup" element={<SignupScreen />} />
+        <Route path="/signin" element={<SigninScreen />} />
         <Route path="/setup/parent" element={<ParentSetup />} />
         <Route path="/setup/child" element={<AddChild />} />
         <Route

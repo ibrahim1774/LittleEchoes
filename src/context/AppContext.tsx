@@ -7,6 +7,7 @@ import {
 } from 'react';
 import type { AppState, AppAction } from '@/types';
 import { getParent, getChildren, getStreak } from '@/services/storage';
+import { supabase } from '@/services/supabase';
 
 const initialState: AppState = {
   parent: null,
@@ -18,6 +19,7 @@ const initialState: AppState = {
   todaySession: null,
   streak: null,
   isLoading: true,
+  user: null,
 };
 
 function reducer(state: AppState, action: AppAction): AppState {
@@ -55,6 +57,8 @@ function reducer(state: AppState, action: AppAction): AppState {
       return { ...state, streak: action.payload };
     case 'SET_LOADING':
       return { ...state, isLoading: action.payload };
+    case 'SET_USER':
+      return { ...state, user: action.payload };
     default:
       return state;
   }
@@ -73,6 +77,12 @@ export function AppProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     async function bootstrap() {
       try {
+        // Check Supabase auth session
+        const { data: { session } } = await supabase.auth.getSession();
+        if (session?.user) {
+          dispatch({ type: 'SET_USER', payload: { id: session.user.id, email: session.user.email ?? '' } });
+        }
+
         const parent = await getParent();
         if (parent) {
           dispatch({ type: 'SET_PARENT', payload: parent });
@@ -96,6 +106,15 @@ export function AppProvider({ children }: { children: ReactNode }) {
       }
     }
     void bootstrap();
+
+    // Keep user in sync with Supabase auth state changes
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      dispatch({
+        type: 'SET_USER',
+        payload: session?.user ? { id: session.user.id, email: session.user.email ?? '' } : null,
+      });
+    });
+    return () => subscription.unsubscribe();
   }, []);
 
   return (

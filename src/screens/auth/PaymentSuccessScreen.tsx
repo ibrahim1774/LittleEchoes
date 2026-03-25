@@ -1,0 +1,34 @@
+import { useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+
+export function PaymentSuccessScreen() {
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      navigate('/signup', { replace: true });
+    }, 2500);
+    return () => clearTimeout(timer);
+  }, [navigate]);
+
+  return (
+    <div className="min-h-screen bg-echo-cream dark:bg-echo-dark-bg flex flex-col items-center justify-center px-8 text-center">
+      <div className="text-6xl mb-4 animate-bounce-in">🎉</div>
+      <h1 className="font-nunito font-extrabold text-2xl text-echo-charcoal dark:text-white mb-2">
+        Payment confirmed!
+      </h1>
+      <p className="font-inter text-echo-gray text-sm leading-relaxed mb-6">
+        Welcome to LittleEchoes. Now let's create your account to get started.
+      </p>
+      <div className="flex gap-2">
+        {[0, 1, 2].map((i) => (
+          <div
+            key={i}
+            className="w-2 h-2 rounded-full bg-echo-coral"
+            style={{ animation: `pulse-scale 1.2s ease-in-out ${i * 0.2}s infinite` }}
+          />
+        ))}
+      </div>
+    </div>
+  );
+}

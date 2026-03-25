@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { useApp } from '@/context/AppContext';
 import { getQuestionsForChild, getStreak, getRecordingsByChild } from '@/services/storage';
 import { CATEGORY_COLORS, CATEGORY_LABELS } from '@/data/questions';
@@ -24,7 +24,7 @@ export function Home() {
   const navigate = useNavigate();
   const [recentRecordings, setRecentRecordings] = useState<Recording[]>([]);
 
-  const { parent, activeChild, todayQuestions, streak } = state;
+  const { parent, activeChild, todayQuestions, streak, user } = state;
 
   useEffect(() => {
     if (!activeChild) return;
@@ -59,9 +59,25 @@ export function Home() {
     <div className="min-h-screen bg-echo-cream dark:bg-echo-dark-bg pb-24 px-4 pt-6">
       {/* Greeting */}
       <div className="mb-5 animate-fade-in">
-        <h1 className="font-nunito font-bold text-2xl text-echo-charcoal dark:text-white">
-          Hi, {parent.name}! 👋
-        </h1>
+        <div className="flex items-center justify-between">
+          <h1 className="font-nunito font-bold text-2xl text-echo-charcoal dark:text-white">
+            Hi, {parent.name}! 👋
+          </h1>
+          {!user ? (
+            <Link
+              to="/signin"
+              className="font-nunito font-semibold text-xs text-echo-coral border border-echo-coral/30 px-3 py-1.5 rounded-full active:scale-95 transition-transform"
+            >
+              Sign In
+            </Link>
+          ) : (
+            <div className="w-8 h-8 rounded-full bg-echo-coral/15 flex items-center justify-center">
+              <span className="text-xs font-nunito font-bold text-echo-coral">
+                {user.email.charAt(0).toUpperCase()}
+              </span>
+            </div>
+          )}
+        </div>
         <p className="font-inter text-echo-gray text-sm mt-0.5">
           {formatDate(new Date())}
         </p>

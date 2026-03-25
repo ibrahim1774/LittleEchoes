@@ -76,6 +76,11 @@ export interface Streak {
   lastRecordingDate: string; // YYYY-MM-DD
 }
 
+export interface AuthUser {
+  id: string;
+  email: string;
+}
+
 // App state
 export interface AppState {
   parent: ParentProfile | null;
@@ -87,6 +92,7 @@ export interface AppState {
   todaySession: RecordingSession | null;
   streak: Streak | null;
   isLoading: boolean;
+  user: AuthUser | null;
 }
 
 export type AppAction =
@@ -99,7 +105,8 @@ export type AppAction =
   | { type: 'SET_TODAY_QUESTIONS'; payload: Question[] }
   | { type: 'SET_TODAY_SESSION'; payload: RecordingSession | null }
   | { type: 'SET_STREAK'; payload: Streak | null }
-  | { type: 'SET_LOADING'; payload: boolean };
+  | { type: 'SET_LOADING'; payload: boolean }
+  | { type: 'SET_USER'; payload: AuthUser | null };
 
 /*
  * ============================================================

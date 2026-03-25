@@ -127,14 +127,27 @@ function applyFilter(groups: GroupedSession[], cat: string | null): GroupedSessi
     .filter((g) => g.recordings.length > 0);
 }
 
+function downloadRecording(rec: Recording, childName: string) {
+  const url = URL.createObjectURL(rec.audioBlob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `${childName}_${rec.createdAt.slice(0, 10)}_echo.webm`;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}
+
 function RecordingCard({
   rec,
   isOpen,
   onToggle,
+  childName,
 }: {
   rec: Recording;
   isOpen: boolean;
   onToggle: () => void;
+  childName: string;
 }) {
   const catKey = rec.questionId.split('-')[0];
   const catColor = CATEGORY_COLORS[catKey] ?? '#8E8E93';
@@ -165,6 +178,18 @@ function RecordingCard({
       {isOpen && (
         <div className="px-4 pb-4 pt-0 border-t border-echo-light-gray dark:border-white/10">
           <AudioPlayer blob={rec.audioBlob} />
+          <button
+            onClick={() => downloadRecording(rec, childName)}
+            className="mt-2 flex items-center gap-1.5 text-echo-gray hover:text-echo-coral transition-colors active:scale-95"
+            aria-label="Download recording"
+          >
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/>
+              <polyline points="7 10 12 15 17 10"/>
+              <line x1="12" y1="15" x2="12" y2="3"/>
+            </svg>
+            <span className="font-inter text-xs">Download</span>
+          </button>
           {rec.transcription && (
             <p className="font-nunito text-sm text-echo-gray mt-3 italic leading-relaxed">"{rec.transcription}"</p>
           )}
@@ -355,6 +380,7 @@ export function Memories() {
                       rec={rec}
                       isOpen={expanded.has(rec.id)}
                       onToggle={() => toggleExpanded(rec.id)}
+                      childName={activeChild.name}
                     />
                   ))}
                 </div>
@@ -475,6 +501,7 @@ export function Memories() {
                       rec={rec}
                       isOpen={expanded.has(rec.id)}
                       onToggle={() => toggleExpanded(rec.id)}
+                      childName={activeChild.name}
                     />
                   ))}
                 </div>
