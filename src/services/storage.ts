@@ -61,6 +61,19 @@ export async function deleteChild(id: string): Promise<void> {
   await db.children.delete(id);
 }
 
+// ── Reset ─────────────────────────────────────────────────────
+
+export async function clearAllData(): Promise<void> {
+  await Promise.all([
+    db.parents.clear(),
+    db.children.clear(),
+    db.sessions.clear(),
+    db.recordings.clear(),
+    db.streaks.clear(),
+    // questions intentionally kept — they are seed data and re-seeded on next open
+  ]);
+}
+
 // ── Sessions ──────────────────────────────────────────────────
 
 export async function getTodaySession(
