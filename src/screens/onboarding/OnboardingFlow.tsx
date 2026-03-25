@@ -416,11 +416,11 @@ export function OnboardingFlow() {
       {isStoryOrPromise && (
         <div
           className="absolute bottom-10 left-0 right-0 flex justify-center pointer-events-none z-10"
-          style={{ opacity: tapHintVisible ? 0.55 : 0, transition: 'opacity 0.6s ease' }}
+          style={{ opacity: tapHintVisible ? 1 : 0, transition: 'opacity 0.6s ease' }}
         >
-          <div className="flex items-center gap-1.5">
-            <p className="font-nunito text-sm text-echo-gray">Tap anywhere to continue</p>
-            <span className="text-echo-gray text-sm">›</span>
+          <div className="flex items-center gap-2 bg-echo-charcoal/75 dark:bg-white/20 px-5 py-2.5 rounded-full animate-pulse">
+            <span className="text-base">👆</span>
+            <p className="font-nunito font-semibold text-sm text-white">Tap to continue</p>
           </div>
         </div>
       )}
