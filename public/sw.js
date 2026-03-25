@@ -1,4 +1,4 @@
-const CACHE_NAME = 'little-echoes-v1';
+const CACHE_NAME = 'little-echoes-v2';
 const SHELL_ASSETS = ['/', '/index.html'];
 
 self.addEventListener('install', (event) => {
