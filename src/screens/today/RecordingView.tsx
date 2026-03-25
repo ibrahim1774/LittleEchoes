@@ -55,7 +55,7 @@ export function RecordingView({
   }, [recordingState, audioBlob, elapsedSeconds, onDone]);
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-echo-cream to-white dark:from-echo-dark-bg dark:to-echo-dark-card flex flex-col items-center px-6 pt-12 pb-10 relative overflow-hidden">
+    <div className="min-h-screen bg-gradient-to-b from-echo-cream to-white dark:from-echo-dark-bg dark:to-echo-dark-card flex flex-col items-center px-6 pt-8 pb-28 relative overflow-hidden">
       {/* Floating background bubbles */}
       {BUBBLES.map((b) => (
         <div

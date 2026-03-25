@@ -41,9 +41,9 @@ export function QuestionDisplay({
   const categoryLabel = CATEGORY_LABELS[question.category];
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-echo-cream to-white dark:from-echo-dark-bg dark:to-echo-dark-card flex flex-col items-center px-6 pt-12 pb-10">
+    <div className="min-h-screen bg-gradient-to-b from-echo-cream to-white dark:from-echo-dark-bg dark:to-echo-dark-card flex flex-col items-center px-6 pt-8 pb-28">
       {/* Progress indicators */}
-      <div className="flex gap-2 mb-10">
+      <div className="flex gap-2 mb-6">
         {Array.from({ length: totalQuestions }).map((_, i) => (
           <div
             key={i}
@@ -101,7 +101,7 @@ export function QuestionDisplay({
       </div>
 
       {/* Record button */}
-      <div className="flex flex-col items-center gap-4 mt-8">
+      <div className="flex flex-col items-center gap-4 mt-6">
         <button
           onClick={onStartRecording}
           className="w-[120px] h-[120px] rounded-full bg-echo-coral flex items-center justify-center shadow-[0_8px_32px_rgba(255,107,107,0.4)] animate-pulse-cta active:scale-95 transition-transform"
