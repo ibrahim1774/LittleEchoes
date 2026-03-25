@@ -44,19 +44,35 @@ function AppShell() {
         <Route path="/setup/child" element={<AddChild />} />
         <Route
           path="/home"
-          element={state.isOnboarded ? <Home /> : <Navigate to="/onboarding" replace />}
+          element={
+            !state.isOnboarded ? <Navigate to="/onboarding" replace /> :
+            !state.user ? <Navigate to="/pricing" replace /> :
+            <Home />
+          }
         />
         <Route
           path="/today"
-          element={state.isOnboarded ? <TodayScreen /> : <Navigate to="/onboarding" replace />}
+          element={
+            !state.isOnboarded ? <Navigate to="/onboarding" replace /> :
+            !state.user ? <Navigate to="/pricing" replace /> :
+            <TodayScreen />
+          }
         />
         <Route
           path="/memories"
-          element={state.isOnboarded ? <Memories /> : <Navigate to="/onboarding" replace />}
+          element={
+            !state.isOnboarded ? <Navigate to="/onboarding" replace /> :
+            !state.user ? <Navigate to="/pricing" replace /> :
+            <Memories />
+          }
         />
         <Route
           path="/settings"
-          element={state.isOnboarded ? <Settings /> : <Navigate to="/onboarding" replace />}
+          element={
+            !state.isOnboarded ? <Navigate to="/onboarding" replace /> :
+            !state.user ? <Navigate to="/pricing" replace /> :
+            <Settings />
+          }
         />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
