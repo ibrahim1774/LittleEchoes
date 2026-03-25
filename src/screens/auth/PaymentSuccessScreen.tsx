@@ -1,15 +1,46 @@
 import { useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
+
+declare function fbq(...args: unknown[]): void;
+
+const PLAN_VALUES: Record<string, number> = {
+  monthly: 9.99,
+  yearly: 59.99,
+};
 
 export function PaymentSuccessScreen() {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
 
   useEffect(() => {
+    const plan = searchParams.get('plan') ?? 'monthly';
+    const value = PLAN_VALUES[plan] ?? 9.99;
+    const eventId = crypto.randomUUID();
+
+    // Client-side pixel
+    try {
+      fbq('track', 'Purchase', { value, currency: 'USD' }, { eventID: eventId });
+    } catch {
+      // fbq not available (ad blocker or script not loaded)
+    }
+
+    // Server-side Conversions API for deduplication
+    void fetch('/api/fb-purchase-event', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        value,
+        currency: 'USD',
+        eventId,
+        eventSourceUrl: window.location.href,
+      }),
+    });
+
     const timer = setTimeout(() => {
       navigate('/signup', { replace: true });
     }, 2500);
     return () => clearTimeout(timer);
-  }, [navigate]);
+  }, [navigate, searchParams]);
 
   return (
     <div className="min-h-screen bg-echo-cream dark:bg-echo-dark-bg flex flex-col items-center justify-center px-8 text-center">

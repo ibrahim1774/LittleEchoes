@@ -46,7 +46,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         },
       ],
       mode: 'subscription',
-      success_url: `${origin}/payment-success?session_id={CHECKOUT_SESSION_ID}`,
+      success_url: `${origin}/payment-success?session_id={CHECKOUT_SESSION_ID}&plan=${plan}`,
       cancel_url: `${origin}/pricing`,
     });
 
