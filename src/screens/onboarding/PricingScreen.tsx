@@ -53,48 +53,48 @@ export function PricingScreen() {
   }
 
   return (
-    <div className="min-h-screen bg-echo-cream dark:bg-echo-dark-bg flex flex-col px-6 pt-10 pb-12 overflow-y-auto">
+    <div className="min-h-screen bg-echo-cream dark:bg-echo-dark-bg flex flex-col px-6 pt-6 pb-6 overflow-y-auto">
       {/* Back to sign in */}
       <button
         onClick={() => navigate('/signin')}
-        className="self-end font-inter text-sm text-echo-gray mb-6"
+        className="self-end font-inter text-sm text-echo-gray mb-3"
       >
         Already a member? Sign in
       </button>
 
       {/* Header */}
-      <div className="text-center mb-8">
-        <div className="text-5xl mb-3">🎙️</div>
-        <h1 className="font-nunito font-extrabold text-2xl text-echo-charcoal dark:text-white leading-tight">
+      <div className="text-center mb-4">
+        <div className="text-4xl mb-1.5">🎙️</div>
+        <h1 className="font-nunito font-extrabold text-xl text-echo-charcoal dark:text-white leading-tight">
           Start capturing their echoes today
         </h1>
-        <p className="font-inter text-echo-gray text-sm mt-2 leading-relaxed">
+        <p className="font-inter text-echo-gray text-xs mt-1 leading-relaxed">
           Join thousands of parents preserving the voices they never want to forget.
         </p>
       </div>
 
       {/* Benefits */}
-      <div className="space-y-4 mb-8">
+      <div className="space-y-2 mb-4">
         {BENEFITS.map((b) => (
-          <div key={b.title} className="flex items-start gap-3">
-            <div className="w-10 h-10 rounded-2xl bg-white dark:bg-echo-dark-card shadow-soft flex items-center justify-center text-xl flex-shrink-0">
+          <div key={b.title} className="flex items-center gap-3">
+            <div className="w-8 h-8 rounded-xl bg-white dark:bg-echo-dark-card shadow-soft flex items-center justify-center text-base flex-shrink-0">
               {b.icon}
             </div>
             <div>
-              <p className="font-nunito font-bold text-sm text-echo-charcoal dark:text-white">{b.title}</p>
-              <p className="font-inter text-xs text-echo-gray leading-relaxed mt-0.5">{b.body}</p>
+              <p className="font-nunito font-bold text-xs text-echo-charcoal dark:text-white">{b.title}</p>
+              <p className="font-inter text-[11px] text-echo-gray leading-snug">{b.body}</p>
             </div>
           </div>
         ))}
       </div>
 
       {/* Plan cards */}
-      <p className="font-inter text-xs text-echo-gray uppercase tracking-wide mb-3 text-center">Choose your plan</p>
-      <div className="space-y-3 mb-6">
+      <p className="font-inter text-xs text-echo-gray uppercase tracking-wide mb-2 text-center">Choose your plan</p>
+      <div className="space-y-2 mb-4">
         {/* Yearly */}
         <button
           onClick={() => setSelectedPlan('yearly')}
-          className={`w-full rounded-2xl p-4 border-2 text-left transition-all relative ${
+          className={`w-full rounded-2xl px-4 py-3 border-2 text-left transition-all relative ${
             selectedPlan === 'yearly'
               ? 'border-echo-coral bg-echo-coral/5'
               : 'border-echo-light-gray bg-white dark:bg-echo-dark-card'
@@ -105,11 +105,11 @@ export function PricingScreen() {
           </div>
           <div className="flex items-center justify-between">
             <div>
-              <p className="font-nunito font-bold text-echo-charcoal dark:text-white">Yearly</p>
+              <p className="font-nunito font-bold text-sm text-echo-charcoal dark:text-white">Yearly</p>
               <p className="font-inter text-xs text-echo-gray mt-0.5">$59.99 / year — just $5/month</p>
             </div>
             <div className="flex items-center gap-2">
-              <span className="font-nunito font-extrabold text-xl text-echo-coral">$59.99</span>
+              <span className="font-nunito font-extrabold text-lg text-echo-coral">$59.99</span>
               <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center transition-all ${
                 selectedPlan === 'yearly' ? 'border-echo-coral bg-echo-coral' : 'border-echo-light-gray'
               }`}>
@@ -126,7 +126,7 @@ export function PricingScreen() {
         {/* Monthly */}
         <button
           onClick={() => setSelectedPlan('monthly')}
-          className={`w-full rounded-2xl p-4 border-2 text-left transition-all ${
+          className={`w-full rounded-2xl px-4 py-3 border-2 text-left transition-all ${
             selectedPlan === 'monthly'
               ? 'border-echo-coral bg-echo-coral/5'
               : 'border-echo-light-gray bg-white dark:bg-echo-dark-card'
@@ -134,11 +134,11 @@ export function PricingScreen() {
         >
           <div className="flex items-center justify-between">
             <div>
-              <p className="font-nunito font-bold text-echo-charcoal dark:text-white">Monthly</p>
+              <p className="font-nunito font-bold text-sm text-echo-charcoal dark:text-white">Monthly</p>
               <p className="font-inter text-xs text-echo-gray mt-0.5">Cancel anytime</p>
             </div>
             <div className="flex items-center gap-2">
-              <span className="font-nunito font-extrabold text-xl text-echo-charcoal dark:text-white">$9.99</span>
+              <span className="font-nunito font-extrabold text-lg text-echo-charcoal dark:text-white">$9.99</span>
               <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center transition-all ${
                 selectedPlan === 'monthly' ? 'border-echo-coral bg-echo-coral' : 'border-echo-light-gray'
               }`}>
@@ -154,18 +154,18 @@ export function PricingScreen() {
       </div>
 
       {error && (
-        <p className="font-inter text-xs text-red-500 text-center mb-3">{error}</p>
+        <p className="font-inter text-xs text-red-500 text-center mb-2">{error}</p>
       )}
 
       <button
         onClick={() => void handleSubscribe()}
         disabled={loading}
-        className="w-full py-4 rounded-full bg-echo-coral text-white font-nunito font-extrabold text-base shadow-coral active:scale-95 transition-transform disabled:opacity-60"
+        className="w-full py-3.5 rounded-full bg-echo-coral text-white font-nunito font-extrabold text-base shadow-coral active:scale-95 transition-transform disabled:opacity-60"
       >
         {loading ? 'Redirecting to checkout...' : `Start with ${selectedPlan === 'yearly' ? 'Yearly — $59.99' : 'Monthly — $9.99/mo'}`}
       </button>
 
-      <p className="font-inter text-xs text-echo-gray text-center mt-3 leading-relaxed">
+      <p className="font-inter text-xs text-echo-gray text-center mt-2">
         Secure payment via Stripe. Cancel anytime. No hidden fees.
       </p>
     </div>
