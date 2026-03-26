@@ -8,6 +8,7 @@ import { Splash } from '@/screens/Splash';
 import { OnboardingFlow, OnboardingFlow2 } from '@/screens/onboarding/OnboardingFlow';
 import { PricingScreen } from '@/screens/onboarding/PricingScreen';
 import { PricingScreen2 } from '@/screens/onboarding/PricingScreen2';
+import { OnboardingFlow3 } from '@/screens/onboarding/OnboardingFlow3';
 import { ParentSetup } from '@/screens/ParentSetup';
 import { AddChild } from '@/screens/AddChild';
 import { Home } from '@/screens/Home';
@@ -43,6 +44,7 @@ function AppShell() {
         <Route path="/onboarding-2" element={<OnboardingFlow2 />} />
         <Route path="/pricing" element={<PricingScreen />} />
         <Route path="/pricing-2" element={<PricingScreen2 />} />
+        <Route path="/onboarding-3" element={<OnboardingFlow3 />} />
         <Route path="/payment-success" element={<PaymentSuccessScreen />} />
         <Route path="/signup" element={<SignupScreen />} />
         <Route path="/signin" element={<SigninScreen />} />
