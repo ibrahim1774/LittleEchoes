@@ -146,7 +146,7 @@ export function LandingPage() {
         >
           Start Capturing Echoes
         </button>
-        <p className="font-inter text-xs text-echo-gray mb-8">$5/month · Cancel anytime</p>
+        <p className="font-inter text-xs text-echo-gray mb-8">Cancel anytime</p>
 
         {/* Phone mockup with glow */}
         <div className="relative flex justify-center">
@@ -323,7 +323,7 @@ export function LandingPage() {
                 <span className="font-extrabold text-2xl text-echo-coral">$60</span>
                 <span className="font-inter text-sm text-echo-gray">/year</span>
               </p>
-              <p className="font-inter text-xs text-echo-gray mb-3">$5/month — save 50%</p>
+              <p className="font-inter text-xs text-echo-gray mb-3">Save 50%</p>
               <ul className="space-y-2 mb-4">
                 {[...PRICING_FEATURES, 'Locked-in pricing'].map(f => (
                   <li key={f} className="flex items-start gap-2 text-xs text-echo-charcoal">

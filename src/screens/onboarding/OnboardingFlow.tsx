@@ -216,10 +216,10 @@ function TimelineIllustration() {
 function PhoneMockup({ src, alt, width = 140 }: { src: string; alt: string; width?: number }) {
   return (
     <div
-      className="rounded-[24px] border-2 border-echo-light-gray shadow-soft overflow-hidden flex-shrink-0"
-      style={{ width, aspectRatio: '1290/2386' }}
+      className="rounded-[24px] border-2 border-echo-light-gray shadow-soft overflow-hidden bg-white"
+      style={{ width }}
     >
-      <img src={src} alt={alt} className="w-full h-full object-cover" loading="lazy" />
+      <img src={src} alt={alt} className="w-full h-auto object-contain" loading="lazy" />
     </div>
   );
 }
@@ -378,13 +378,9 @@ export function OnboardingFlow() {
               )}
             </div>
 
-            <div
-              className="flex gap-4 overflow-x-auto pb-3 px-2 w-full justify-center"
-              style={{ scrollbarWidth: 'none' }}
-              onClick={(e) => e.stopPropagation()}
-            >
+            <div className="flex flex-wrap justify-center gap-4 pb-3 px-2 w-full">
               {slide.steps.map((step, i) => (
-                <div key={i} className="flex flex-col items-center gap-2 flex-shrink-0">
+                <div key={i} className="flex flex-col items-center gap-2" style={{ width: slide.steps.length > 2 ? 130 : 150 }}>
                   <div className="relative">
                     <div className="absolute -top-2 -left-2 w-7 h-7 rounded-full bg-echo-coral flex items-center justify-center z-10 shadow-sm">
                       <span className="font-nunito font-bold text-xs text-white">{i + 1}</span>
@@ -522,7 +518,7 @@ export function OnboardingFlow() {
       {/* Tap-to-continue hint (story + promise slides only) */}
       {isStoryOrPromise && (
         <div
-          className="absolute bottom-1/3 left-0 right-0 flex justify-center pointer-events-none z-10"
+          className="absolute bottom-[20%] left-0 right-0 flex justify-center pointer-events-none z-10"
           style={{ opacity: tapHintVisible ? 1 : 0, transition: 'opacity 0.6s ease' }}
         >
           <div className="flex items-center gap-2 bg-echo-charcoal/75 dark:bg-white/20 px-5 py-2.5 rounded-full">
