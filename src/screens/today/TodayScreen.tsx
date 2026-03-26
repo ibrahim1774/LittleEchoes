@@ -1,7 +1,7 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useApp } from '@/context/AppContext';
-import { saveSession, saveRecording, updateStreak, getTodayRecordingCount } from '@/services/storage';
+import { saveSession, saveRecording, updateStreak } from '@/services/storage';
 import { syncToCloud } from '@/services/cloudSync';
 import { supabase } from '@/services/supabase';
 import type { Recording, RecordingSession } from '@/types';
@@ -9,8 +9,6 @@ import { QuestionDisplay } from './QuestionDisplay';
 import { RecordingView } from './RecordingView';
 import { ReviewRecording } from './ReviewRecording';
 import { SessionComplete } from './SessionComplete';
-
-const MAX_DAILY_RECORDINGS = 3;
 
 type SessionPhase =
   | { step: 'hub' }
@@ -42,17 +40,6 @@ export function TodayScreen() {
 
   const { activeChild, todayQuestions, parent } = state;
 
-  // Load today's recording count
-  const refreshCount = useCallback(async () => {
-    if (!activeChild) return;
-    const count = await getTodayRecordingCount(activeChild.id);
-    setTodayCount(count);
-  }, [activeChild]);
-
-  useEffect(() => {
-    void refreshCount();
-  }, [refreshCount]);
-
   if (!activeChild || !parent) {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center bg-echo-cream dark:bg-echo-dark-bg px-6 pb-24">
@@ -69,24 +56,16 @@ export function TodayScreen() {
     );
   }
 
-  const remaining = Math.max(0, MAX_DAILY_RECORDINGS - todayCount);
   const currentQuestion =
     phase.step === 'question' || phase.step === 'recording' || phase.step === 'review'
       ? todayQuestions[phase.questionIndex]
       : null;
 
-  // Compute how many question recordings are possible (limited by daily cap)
-  const questionsAvailable = Math.min(todayQuestions.length, remaining);
-
   function startQuestionFlow() {
-    if (remaining <= 0) return;
-
     setPhase({ step: 'question', questionIndex: 0 });
   }
 
   function startFreeRecording() {
-    if (remaining <= 0) return;
-
     setPhase({ step: 'free-recording' });
   }
 
@@ -198,14 +177,6 @@ export function TodayScreen() {
     if (phase.step !== 'review') return;
     if (!activeChild) return;
 
-    // Hard limit check
-    const currentCount = await getTodayRecordingCount(activeChild.id);
-    if (currentCount >= MAX_DAILY_RECORDINGS) {
-      await finishSession(collectedRecordings);
-      void refreshCount();
-      return;
-    }
-
     const { questionIndex } = phase;
     const question = todayQuestions[questionIndex];
 
@@ -215,12 +186,10 @@ export function TodayScreen() {
 
     const newRecordings = [...collectedRecordings, recording];
     setCollectedRecordings(newRecordings);
-
-    const newCount = currentCount + 1;
-    setTodayCount(newCount);
+    setTodayCount((c) => c + 1);
 
     const nextIndex = questionIndex + 1;
-    const isLast = questionIndex >= todayQuestions.length - 1 || newCount >= MAX_DAILY_RECORDINGS;
+    const isLast = questionIndex >= todayQuestions.length - 1;
 
     if (isLast) {
       await finishSession(newRecordings);
@@ -243,21 +212,13 @@ export function TodayScreen() {
     if (phase.step !== 'free-review') return;
     if (!activeChild) return;
 
-    // Hard limit check
-    const currentCount = await getTodayRecordingCount(activeChild.id);
-    if (currentCount >= MAX_DAILY_RECORDINGS) {
-      await finishSession(collectedRecordings);
-      void refreshCount();
-      return;
-    }
-
     const recording = await saveRecordingEntry(
       blob, duration, `free-${generateId()}`, 'Free recording', emotionTag, parentNote
     );
 
     const newRecordings = [...collectedRecordings, recording];
     setCollectedRecordings(newRecordings);
-    setTodayCount(currentCount + 1);
+    setTodayCount((c) => c + 1);
 
     // Mark session complete, update streak, go back to hub
     try {
@@ -278,7 +239,6 @@ export function TodayScreen() {
     // Return to hub so they can record more or see they're done
 
     setPhase({ step: 'hub' });
-    void refreshCount();
   }
 
   // ── Render phases ──────────────────────────────────────────
@@ -292,7 +252,7 @@ export function TodayScreen() {
       <QuestionDisplay
         question={currentQuestion}
         questionIndex={phase.questionIndex}
-        totalQuestions={questionsAvailable}
+        totalQuestions={todayQuestions.length}
         childName={activeChild.name}
         onStartRecording={handleStartRecording}
       />
@@ -304,7 +264,7 @@ export function TodayScreen() {
       <RecordingView
         question={currentQuestion}
         questionIndex={phase.questionIndex}
-        totalQuestions={questionsAvailable}
+        totalQuestions={todayQuestions.length}
         childName={activeChild.name}
         onDone={handleRecordingDone}
       />
@@ -316,7 +276,7 @@ export function TodayScreen() {
       <ReviewRecording
         question={currentQuestion}
         questionIndex={phase.questionIndex}
-        totalQuestions={questionsAvailable}
+        totalQuestions={todayQuestions.length}
         blob={phase.blob}
         duration={phase.duration}
         onReRecord={handleReRecord}
@@ -362,68 +322,27 @@ export function TodayScreen() {
           Record for {activeChild.name}
         </h1>
         <p className="font-inter text-echo-gray text-sm mt-1">
-          {remaining > 0
-            ? `${todayCount} of ${MAX_DAILY_RECORDINGS} echoes today`
-            : 'All done for today!'}
+          {todayCount} {todayCount === 1 ? 'echo' : 'echoes'} today
         </p>
       </div>
 
-      {/* Progress dots */}
-      <div className="flex justify-center gap-2 mb-8 animate-fade-in" style={{ animationDelay: '0.1s' }}>
-        {Array.from({ length: MAX_DAILY_RECORDINGS }).map((_, i) => (
-          <div
-            key={i}
-            className={`w-4 h-4 rounded-full transition-all ${
-              i < todayCount
-                ? 'bg-echo-coral scale-110'
-                : 'bg-echo-light-gray dark:bg-white/10'
-            }`}
-          />
-        ))}
-      </div>
-
-      {remaining > 0 ? (
-        <div className="space-y-4 animate-fade-in" style={{ animationDelay: '0.15s' }}>
-          {/* Answer Questions option */}
-          {todayQuestions.length > 0 && (
-            <button
-              onClick={startQuestionFlow}
-              className="w-full bg-white dark:bg-echo-dark-card rounded-2xl p-5 shadow-soft text-left active:scale-[0.98] transition-transform"
-            >
-              <div className="flex items-center gap-4">
-                <div className="w-14 h-14 rounded-full bg-echo-coral/10 flex items-center justify-center flex-shrink-0">
-                  <span className="text-2xl">❓</span>
-                </div>
-                <div className="flex-1">
-                  <p className="font-nunito font-bold text-base text-echo-charcoal dark:text-white">
-                    Answer Today's Questions
-                  </p>
-                  <p className="font-inter text-echo-gray text-xs mt-0.5">
-                    {Math.min(todayQuestions.length, remaining)} question{Math.min(todayQuestions.length, remaining) !== 1 ? 's' : ''} ready for {activeChild.name}
-                  </p>
-                </div>
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-echo-gray flex-shrink-0">
-                  <path d="M9 18l6-6-6-6" strokeLinecap="round" strokeLinejoin="round"/>
-                </svg>
-              </div>
-            </button>
-          )}
-
-          {/* Free Recording option */}
+      <div className="space-y-4 animate-fade-in" style={{ animationDelay: '0.15s' }}>
+        {/* Answer Questions option */}
+        {todayQuestions.length > 0 && (
           <button
-            onClick={startFreeRecording}
+            onClick={startQuestionFlow}
             className="w-full bg-white dark:bg-echo-dark-card rounded-2xl p-5 shadow-soft text-left active:scale-[0.98] transition-transform"
           >
             <div className="flex items-center gap-4">
-              <div className="w-14 h-14 rounded-full bg-echo-sky/10 flex items-center justify-center flex-shrink-0">
-                <span className="text-2xl">🎙️</span>
+              <div className="w-14 h-14 rounded-full bg-echo-coral/10 flex items-center justify-center flex-shrink-0">
+                <span className="text-2xl">❓</span>
               </div>
               <div className="flex-1">
                 <p className="font-nunito font-bold text-base text-echo-charcoal dark:text-white">
-                  Just Record Their Voice
+                  Answer Today's Questions
                 </p>
                 <p className="font-inter text-echo-gray text-xs mt-0.5">
-                  No questions — capture anything up to 1 minute
+                  {todayQuestions.length} question{todayQuestions.length !== 1 ? 's' : ''} ready for {activeChild.name}
                 </p>
               </div>
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-echo-gray flex-shrink-0">
@@ -431,36 +350,38 @@ export function TodayScreen() {
               </svg>
             </div>
           </button>
-        </div>
-      ) : (
-        /* All done state */
-        <div className="text-center animate-fade-in" style={{ animationDelay: '0.15s' }}>
-          <div className="bg-white dark:bg-echo-dark-card rounded-2xl p-8 shadow-soft mb-6">
-            <div className="text-5xl mb-4">✨</div>
-            <p className="font-nunito font-bold text-lg text-echo-charcoal dark:text-white mb-2">
-              All {MAX_DAILY_RECORDINGS} echoes captured!
-            </p>
-            <p className="font-inter text-echo-gray text-sm">
-              Come back tomorrow for new questions and recordings.
-            </p>
+        )}
+
+        {/* Free Recording option */}
+        <button
+          onClick={startFreeRecording}
+          className="w-full bg-white dark:bg-echo-dark-card rounded-2xl p-5 shadow-soft text-left active:scale-[0.98] transition-transform"
+        >
+          <div className="flex items-center gap-4">
+            <div className="w-14 h-14 rounded-full bg-echo-sky/10 flex items-center justify-center flex-shrink-0">
+              <span className="text-2xl">🎙️</span>
+            </div>
+            <div className="flex-1">
+              <p className="font-nunito font-bold text-base text-echo-charcoal dark:text-white">
+                Just Record Their Voice
+              </p>
+              <p className="font-inter text-echo-gray text-xs mt-0.5">
+                No questions — capture anything up to 1 minute
+              </p>
+            </div>
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-echo-gray flex-shrink-0">
+              <path d="M9 18l6-6-6-6" strokeLinecap="round" strokeLinejoin="round"/>
+            </svg>
           </div>
-          <button
-            onClick={() => navigate('/memories')}
-            className="bg-echo-coral text-white font-nunito font-bold text-base px-8 py-4 rounded-full shadow-coral active:scale-95 transition-transform"
-          >
-            📖 View Memories
-          </button>
-        </div>
-      )}
+        </button>
+      </div>
 
       {/* Tip */}
-      {remaining > 0 && (
-        <div className="mt-6 rounded-xl bg-echo-orange/10 px-4 py-3 animate-fade-in" style={{ animationDelay: '0.25s' }}>
-          <p className="font-nunito text-echo-orange text-xs text-center">
-            💡 Each recording is up to 1 minute — {remaining} recording{remaining !== 1 ? 's' : ''} left today
-          </p>
-        </div>
-      )}
+      <div className="mt-6 rounded-xl bg-echo-orange/10 px-4 py-3 animate-fade-in" style={{ animationDelay: '0.25s' }}>
+        <p className="font-nunito text-echo-orange text-xs text-center">
+          💡 Each recording is up to 1 minute
+        </p>
+      </div>
     </div>
   );
 }
