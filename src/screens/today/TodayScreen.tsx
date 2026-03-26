@@ -12,8 +12,6 @@ import { SessionComplete } from './SessionComplete';
 
 const MAX_DAILY_RECORDINGS = 3;
 
-type SessionMode = 'hub' | 'questions' | 'free';
-
 type SessionPhase =
   | { step: 'hub' }
   | { step: 'question'; questionIndex: number }
@@ -41,7 +39,6 @@ export function TodayScreen() {
     () => state.todayProgress?.recordings ?? []
   );
   const [todayCount, setTodayCount] = useState(0);
-  const [, setMode] = useState<SessionMode>('hub');
 
   const { activeChild, todayQuestions, parent } = state;
 
@@ -83,13 +80,13 @@ export function TodayScreen() {
 
   function startQuestionFlow() {
     if (remaining <= 0) return;
-    setMode('questions');
+
     setPhase({ step: 'question', questionIndex: 0 });
   }
 
   function startFreeRecording() {
     if (remaining <= 0) return;
-    setMode('free');
+
     setPhase({ step: 'free-recording' });
   }
 
@@ -279,7 +276,7 @@ export function TodayScreen() {
 
     dispatch({ type: 'SET_TODAY_PROGRESS', payload: null });
     // Return to hub so they can record more or see they're done
-    setMode('hub');
+
     setPhase({ step: 'hub' });
     void refreshCount();
   }
