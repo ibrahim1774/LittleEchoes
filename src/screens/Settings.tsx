@@ -212,10 +212,10 @@ export function Settings() {
     setCustomQuestions((prev) => prev.filter((q) => q.id !== id));
   }
 
-  async function handleSignOut() {
-    await supabase.auth.signOut();
+  function handleSignOut() {
     dispatch({ type: 'SET_USER', payload: null });
     navigate('/');
+    void supabase.auth.signOut();
   }
 
   function toggleAgeGroup(ag: AgeGroup) {

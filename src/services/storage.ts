@@ -203,6 +203,19 @@ export async function updateStreak(childId: string): Promise<Streak> {
 // ── Question selection ────────────────────────────────────────
 
 export async function getQuestionsForChild(child: ChildProfile): Promise<Question[]> {
+  // Check daily cache — same questions all day, new ones tomorrow
+  const todayStr = today();
+  const cacheKey = `questions-${child.id}-${todayStr}`;
+  try {
+    const cached = localStorage.getItem(cacheKey);
+    if (cached) {
+      const ids: string[] = JSON.parse(cached);
+      const questions = await Promise.all(ids.map((id) => db.questions.get(id)));
+      const valid = questions.filter((q): q is Question => q != null);
+      if (valid.length > 0) return valid;
+    }
+  } catch { /* cache miss — pick fresh */ }
+
   // Get recently asked questions (last 14 days)
   const fourteenDaysAgo = new Date();
   fourteenDaysAgo.setDate(fourteenDaysAgo.getDate() - 14);
@@ -255,5 +268,12 @@ export async function getQuestionsForChild(child: ChildProfile): Promise<Questio
     selected.push(...extra);
   }
 
-  return selected.slice(0, 3);
+  const result = selected.slice(0, 3);
+
+  // Cache today's questions so they persist across sign-in/out
+  try {
+    localStorage.setItem(cacheKey, JSON.stringify(result.map((q) => q.id)));
+  } catch { /* storage full — non-critical */ }
+
+  return result;
 }
