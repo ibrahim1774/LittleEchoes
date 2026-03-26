@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/services/supabase';
 import { useApp } from '@/context/AppContext';
 import { loadFromCloud } from '@/services/cloudSync';
+import { getParent, getChildren, getStreak } from '@/services/storage';
 
 export function SigninScreen() {
   const navigate = useNavigate();
@@ -30,6 +31,19 @@ export function SigninScreen() {
       dispatch({ type: 'SET_USER', payload: user });
       // Load cloud data onto this device
       await loadFromCloud(user);
+      // Refresh React state from IndexedDB (loadFromCloud only writes to DB, not state)
+      const parent = await getParent();
+      if (parent) {
+        dispatch({ type: 'SET_PARENT', payload: parent });
+        dispatch({ type: 'SET_ONBOARDED', payload: true });
+        const kids = await getChildren(parent.id);
+        dispatch({ type: 'SET_CHILDREN', payload: kids });
+        if (kids.length > 0) {
+          dispatch({ type: 'SET_ACTIVE_CHILD', payload: kids[0] });
+          const streak = await getStreak(kids[0].id);
+          dispatch({ type: 'SET_STREAK', payload: streak ?? null });
+        }
+      }
     }
 
     navigate('/home', { replace: true });

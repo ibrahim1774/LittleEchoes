@@ -88,10 +88,11 @@ export function Settings() {
   useEffect(() => {
     if (parent?.settings) {
       setReminderTime(parent.settings.reminderTime || '18:00');
-      setReminderDays(parent.settings.reminderDays.length > 0 ? parent.settings.reminderDays : ['mon', 'tue', 'wed', 'thu', 'fri']);
+      setReminderDays((parent.settings.reminderDays?.length ?? 0) > 0 ? parent.settings.reminderDays : ['mon', 'tue', 'wed', 'thu', 'fri']);
       setRemindersEnabled(
+        typeof Notification !== 'undefined' &&
         Notification.permission === 'granted' &&
-        parent.settings.reminderDays.length > 0,
+        (parent.settings.reminderDays?.length ?? 0) > 0,
       );
     }
   }, [parent]);
