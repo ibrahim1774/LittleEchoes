@@ -35,7 +35,21 @@ type CTASlide = {
   buttonText: string;
 };
 
-type Slide = StorySlide | QuestionSlide | PromiseSlide | CTASlide;
+type GallerySlide = {
+  type: 'gallery';
+  headline: string;
+  sub?: string;
+  steps: { src: string; label: string }[];
+};
+
+type BenefitsSlide = {
+  type: 'benefits';
+  headline: string;
+  sub: string;
+  benefits: { icon: string; title: string; desc: string; color: string }[];
+};
+
+type Slide = StorySlide | QuestionSlide | PromiseSlide | CTASlide | GallerySlide | BenefitsSlide;
 
 const CHALLENGE_SUBTITLES: Record<number, string> = {
   0: "We'll keep it quick — just 3 questions, about 5 minutes a day.",
@@ -118,24 +132,33 @@ const SLIDES: Slide[] = [
     },
   },
   {
-    type: 'story',
-    headline: 'Every evening,\n3 questions appear.',
-    sub: 'Thoughtfully chosen for their age and heart.',
-    sub2: "No thinking required — we've done that part for you.",
-    illustration: 'card',
+    type: 'gallery',
+    headline: "Here's how it works.",
+    steps: [
+      { src: '/IMG_3452.jpg', label: 'Pick from daily questions' },
+      { src: '/IMG_3456.jpg', label: 'Press record, let them talk' },
+      { src: '/IMG_3454.jpg', label: 'Relive it all in Memories' },
+    ],
   },
   {
-    type: 'story',
-    headline: 'Just press record.\nLet them talk.',
-    sub: 'No scripting. No pressure.',
-    sub2: 'Just their voice, their words, their world.',
-    illustration: 'mic',
+    type: 'gallery',
+    headline: 'Every voice. Every word.\nSaved forever.',
+    sub: "Imagine hearing their 4-year-old voice when they're 14.\nThat's what you're building.",
+    steps: [
+      { src: '/IMG_3453.jpg', label: 'Record their answers' },
+      { src: '/IMG_3455.jpg', label: 'Browse by date' },
+    ],
   },
   {
-    type: 'story',
-    headline: 'Years later,\npress play.',
-    sub: 'Hear "What was the best part of your day?" answered at age 4... then 6... then 9.',
-    illustration: 'timeline',
+    type: 'benefits',
+    headline: 'Built for real parents,\nreal life.',
+    sub: "You can't pause childhood.\nBut you can press record.",
+    benefits: [
+      { icon: '⏱️', title: '5 minutes a day', desc: 'No prep, no pressure — just press record', color: '#FF6B6B' },
+      { icon: '🎙️', title: 'Their voice, preserved', desc: 'Before it changes forever', color: '#6BC5F8' },
+      { icon: '🌱', title: 'Watch them grow', desc: 'See answers evolve year after year', color: '#A8E06C' },
+      { icon: '🔒', title: '100% private', desc: "Your family's memories, nobody else's", color: '#C4A1FF' },
+    ],
   },
   {
     type: 'cta',
@@ -190,6 +213,17 @@ function TimelineIllustration() {
   );
 }
 
+function PhoneMockup({ src, alt, width = 140 }: { src: string; alt: string; width?: number }) {
+  return (
+    <div
+      className="rounded-[24px] border-2 border-echo-light-gray shadow-soft overflow-hidden flex-shrink-0"
+      style={{ width, aspectRatio: '1290/2386' }}
+    >
+      <img src={src} alt={alt} className="w-full h-full object-cover" loading="lazy" />
+    </div>
+  );
+}
+
 function renderIllustration(type: StorySlide['illustration']) {
   switch (type) {
     case 'parent-child': return <div className="w-full flex justify-center mb-2"><ParentChildIllustration /></div>;
@@ -214,7 +248,7 @@ export function OnboardingFlow() {
 
   const slide = SLIDES[currentSlide];
   const progress = currentSlide / (TOTAL - 1);
-  const isStoryOrPromise = slide.type === 'story' || slide.type === 'promise';
+  const isStoryOrPromise = slide.type === 'story' || slide.type === 'promise' || slide.type === 'gallery' || slide.type === 'benefits';
   const showSkip = currentSlide < 7;
 
   useEffect(() => {
@@ -327,6 +361,79 @@ export function OnboardingFlow() {
                 Every day, a little closer to the memories you'll treasure forever.
               </p>
             </div>
+          </div>
+        )}
+
+        {/* ── GALLERY SLIDE ── */}
+        {slide.type === 'gallery' && (
+          <div className="flex flex-col items-center w-full gap-5 pt-2">
+            <div className="text-center space-y-2 max-w-xs">
+              <h1 className="font-nunito font-extrabold text-[26px] leading-tight text-echo-charcoal dark:text-white whitespace-pre-line">
+                {slide.headline}
+              </h1>
+              {slide.sub && (
+                <p className="font-nunito text-sm text-echo-gray leading-relaxed whitespace-pre-line">
+                  {slide.sub}
+                </p>
+              )}
+            </div>
+
+            <div
+              className="flex gap-4 overflow-x-auto pb-3 px-2 w-full justify-center"
+              style={{ scrollbarWidth: 'none' }}
+              onClick={(e) => e.stopPropagation()}
+            >
+              {slide.steps.map((step, i) => (
+                <div key={i} className="flex flex-col items-center gap-2 flex-shrink-0">
+                  <div className="relative">
+                    <div className="absolute -top-2 -left-2 w-7 h-7 rounded-full bg-echo-coral flex items-center justify-center z-10 shadow-sm">
+                      <span className="font-nunito font-bold text-xs text-white">{i + 1}</span>
+                    </div>
+                    <PhoneMockup src={step.src} alt={step.label} width={slide.steps.length > 2 ? 130 : 150} />
+                  </div>
+                  <p className="font-nunito font-semibold text-xs text-echo-charcoal dark:text-white text-center max-w-[130px] leading-snug">
+                    {step.label}
+                  </p>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* ── BENEFITS SLIDE ── */}
+        {slide.type === 'benefits' && (
+          <div className="flex flex-col items-center justify-center flex-1 w-full gap-5">
+            <div className="text-center space-y-2 max-w-xs">
+              <h1 className="font-nunito font-extrabold text-[26px] leading-tight text-echo-charcoal dark:text-white whitespace-pre-line">
+                {slide.headline}
+              </h1>
+            </div>
+
+            <div className="grid grid-cols-2 gap-3 w-full">
+              {slide.benefits.map((b, i) => (
+                <div
+                  key={i}
+                  className="bg-white dark:bg-echo-dark-card rounded-2xl p-4 shadow-soft flex flex-col gap-2"
+                >
+                  <div
+                    className="w-10 h-10 rounded-xl flex items-center justify-center text-xl"
+                    style={{ backgroundColor: b.color + '20' }}
+                  >
+                    {b.icon}
+                  </div>
+                  <p className="font-nunito font-bold text-sm text-echo-charcoal dark:text-white leading-snug">
+                    {b.title}
+                  </p>
+                  <p className="font-inter text-xs text-echo-gray leading-snug">
+                    {b.desc}
+                  </p>
+                </div>
+              ))}
+            </div>
+
+            <p className="font-nunito text-sm text-echo-gray leading-relaxed text-center italic whitespace-pre-line max-w-xs">
+              {slide.sub}
+            </p>
           </div>
         )}
 
