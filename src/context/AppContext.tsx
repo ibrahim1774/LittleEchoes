@@ -17,6 +17,7 @@ const initialState: AppState = {
   darkMode: false,
   todayQuestions: [],
   todaySession: null,
+  todayProgress: null,
   streak: null,
   isLoading: true,
   user: null,
@@ -59,6 +60,8 @@ function reducer(state: AppState, action: AppAction): AppState {
       return { ...state, isLoading: action.payload };
     case 'SET_USER':
       return { ...state, user: action.payload };
+    case 'SET_TODAY_PROGRESS':
+      return { ...state, todayProgress: action.payload };
     default:
       return state;
   }

@@ -82,6 +82,12 @@ export interface AuthUser {
   email: string;
 }
 
+export interface TodayProgress {
+  sessionId: string;
+  questionIndex: number;
+  recordings: Recording[];
+}
+
 // App state
 export interface AppState {
   parent: ParentProfile | null;
@@ -91,6 +97,7 @@ export interface AppState {
   darkMode: boolean;
   todayQuestions: Question[];
   todaySession: RecordingSession | null;
+  todayProgress: TodayProgress | null;
   streak: Streak | null;
   isLoading: boolean;
   user: AuthUser | null;
@@ -107,7 +114,8 @@ export type AppAction =
   | { type: 'SET_TODAY_SESSION'; payload: RecordingSession | null }
   | { type: 'SET_STREAK'; payload: Streak | null }
   | { type: 'SET_LOADING'; payload: boolean }
-  | { type: 'SET_USER'; payload: AuthUser | null };
+  | { type: 'SET_USER'; payload: AuthUser | null }
+  | { type: 'SET_TODAY_PROGRESS'; payload: TodayProgress | null };
 
 /*
  * ============================================================

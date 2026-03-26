@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useApp } from '@/context/AppContext';
 import { saveSession, saveRecording, updateStreak } from '@/services/storage';
 import { syncToCloud } from '@/services/cloudSync';
+import { supabase } from '@/services/supabase';
 import type { Recording, RecordingSession } from '@/types';
 import { QuestionDisplay } from './QuestionDisplay';
 import { RecordingView } from './RecordingView';
@@ -22,9 +23,17 @@ function generateId() {
 export function TodayScreen() {
   const { state, dispatch } = useApp();
   const navigate = useNavigate();
-  const [phase, setPhase] = useState<SessionPhase>({ step: 'question', questionIndex: 0 });
-  const [sessionId] = useState(generateId);
-  const [collectedRecordings, setCollectedRecordings] = useState<Recording[]>([]);
+
+  // Restore session progress from context (survives tab switches)
+  const [sessionId] = useState(() => state.todayProgress?.sessionId ?? generateId());
+  const [phase, setPhase] = useState<SessionPhase>(() =>
+    state.todayProgress
+      ? { step: 'question', questionIndex: state.todayProgress.questionIndex }
+      : { step: 'question', questionIndex: 0 }
+  );
+  const [collectedRecordings, setCollectedRecordings] = useState<Recording[]>(
+    () => state.todayProgress?.recordings ?? []
+  );
 
   const { activeChild, todayQuestions, parent } = state;
 
@@ -105,8 +114,17 @@ export function TodayScreen() {
       try {
         await saveRecording(recording);
       } catch {
-        // Blob storage can fail on mobile Safari — save metadata without audio
-        await saveRecording({ ...recording, audioBlob: undefined });
+        // Blob storage can fail on mobile Safari — upload directly to cloud
+        let audioUrl: string | undefined;
+        if (state.user) {
+          const path = `${state.user.id}/${recording.id}.webm`;
+          const { error } = await supabase.storage
+            .from('recordings')
+            .upload(path, blob, { contentType: 'audio/webm', upsert: true });
+          if (!error) audioUrl = path;
+        }
+        await saveRecording({ ...recording, audioBlob: undefined, audioUrl });
+        recording.audioUrl = audioUrl;
       }
 
       if (state.user) void syncToCloud(state.user);
@@ -118,7 +136,9 @@ export function TodayScreen() {
     const newRecordings = [...collectedRecordings, recording];
     setCollectedRecordings(newRecordings);
 
+    const nextIndex = questionIndex + 1;
     const isLast = questionIndex >= todayQuestions.length - 1;
+
     if (isLast) {
       // Mark session complete and update streak
       try {
@@ -138,9 +158,17 @@ export function TodayScreen() {
         console.error('Failed to complete session:', err);
       }
 
+      // Clear progress — session is done
+      dispatch({ type: 'SET_TODAY_PROGRESS', payload: null });
       setPhase({ step: 'complete', recordings: newRecordings });
     } else {
-      setPhase({ step: 'question', questionIndex: questionIndex + 1 });
+      // Save progress so it survives tab switches
+      dispatch({ type: 'SET_TODAY_PROGRESS', payload: {
+        sessionId,
+        questionIndex: nextIndex,
+        recordings: newRecordings,
+      }});
+      setPhase({ step: 'question', questionIndex: nextIndex });
     }
   }
 
