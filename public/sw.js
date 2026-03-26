@@ -1,10 +1,6 @@
-const CACHE_NAME = 'little-echoes-v2';
-const SHELL_ASSETS = ['/', '/index.html'];
+const CACHE_NAME = 'little-echoes-v3';
 
 self.addEventListener('install', (event) => {
-  event.waitUntil(
-    caches.open(CACHE_NAME).then((cache) => cache.addAll(SHELL_ASSETS))
-  );
   self.skipWaiting();
 });
 
@@ -20,19 +16,28 @@ self.addEventListener('activate', (event) => {
 self.addEventListener('fetch', (event) => {
   if (event.request.method !== 'GET') return;
   const url = new URL(event.request.url);
-  // Cache-first for same-origin navigation
-  if (url.origin === self.location.origin) {
+  if (url.origin !== self.location.origin) return;
+
+  // Navigation requests (HTML pages): always fetch from network first
+  // so new deployments take effect immediately
+  if (event.request.mode === 'navigate') {
     event.respondWith(
-      caches.match(event.request).then((cached) => {
-        if (cached) return cached;
-        return fetch(event.request).then((response) => {
-          if (response.ok) {
-            const clone = response.clone();
-            caches.open(CACHE_NAME).then((cache) => cache.put(event.request, clone));
-          }
-          return response;
-        });
-      })
+      fetch(event.request).catch(() => caches.match('/index.html'))
     );
+    return;
   }
+
+  // Static assets (JS/CSS with content hashes): cache-first is fine
+  event.respondWith(
+    caches.match(event.request).then((cached) => {
+      if (cached) return cached;
+      return fetch(event.request).then((response) => {
+        if (response.ok) {
+          const clone = response.clone();
+          caches.open(CACHE_NAME).then((cache) => cache.put(event.request, clone));
+        }
+        return response;
+      });
+    })
+  );
 });

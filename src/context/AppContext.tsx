@@ -77,10 +77,15 @@ export function AppProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     async function bootstrap() {
       try {
-        // Check Supabase auth session
-        const { data: { session } } = await supabase.auth.getSession();
-        if (session?.user) {
-          dispatch({ type: 'SET_USER', payload: { id: session.user.id, email: session.user.email ?? '' } });
+        // Check Supabase auth session — isolated so a failure here
+        // doesn't prevent loading local data from IndexedDB
+        try {
+          const { data: { session } } = await supabase.auth.getSession();
+          if (session?.user) {
+            dispatch({ type: 'SET_USER', payload: { id: session.user.id, email: session.user.email ?? '' } });
+          }
+        } catch {
+          // Auth check failed (expired token, network issue) — continue with local data
         }
 
         const parent = await getParent();
@@ -88,7 +93,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
           dispatch({ type: 'SET_PARENT', payload: parent });
           dispatch({ type: 'SET_ONBOARDED', payload: true });
 
-          if (parent.settings.darkMode) {
+          if (parent.settings?.darkMode) {
             dispatch({ type: 'TOGGLE_DARK_MODE' });
           }
 
