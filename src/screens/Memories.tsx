@@ -55,13 +55,13 @@ function toDateStr(year: number, month: number, day: number): string {
   return `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
 }
 
-function AudioPlayer({ blob, audioUrl }: { blob?: Blob; audioUrl?: string }) {
+function AudioPlayer({ blob, audioUrl, fallbackDuration }: { blob?: Blob; audioUrl?: string; fallbackDuration?: number }) {
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const urlRef = useRef<string | null>(null);
   const [isPlaying, setIsPlaying] = useState(false);
   const [progress, setProgress] = useState(0);
   const [currentTime, setCurrentTime] = useState(0);
-  const [duration, setDuration] = useState(0);
+  const [duration, setDuration] = useState(fallbackDuration ?? 0);
   const [loadingAudio, setLoadingAudio] = useState(false);
   const [audioError, setAudioError] = useState(false);
 
@@ -232,7 +232,7 @@ function RecordingCard({
 
       {isOpen && (
         <div className="px-4 pb-4 pt-0 border-t border-echo-light-gray dark:border-white/10">
-          <AudioPlayer blob={rec.audioBlob} audioUrl={rec.audioUrl} />
+          <AudioPlayer blob={rec.audioBlob} audioUrl={rec.audioUrl} fallbackDuration={rec.durationSeconds} />
           <button
             onClick={() => void downloadRecording(rec, childName)}
             className="mt-2 flex items-center gap-1.5 text-echo-gray hover:text-echo-coral transition-colors active:scale-95"

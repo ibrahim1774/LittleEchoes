@@ -99,7 +99,7 @@ export function RecordingView({
       {/* Question text or free recording label */}
       {isFreeRecording ? (
         <p className="font-nunito font-semibold text-base text-echo-charcoal dark:text-white text-center mb-2 px-2">
-          🎙️ Free Recording
+          🎤 Custom Audio
         </p>
       ) : question ? (
         <p className="font-nunito font-semibold text-sm text-echo-gray dark:text-echo-gray text-center mb-2 px-2">

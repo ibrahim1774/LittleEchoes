@@ -226,7 +226,7 @@ export function TodayScreen() {
     if (!activeChild) return;
 
     const recording = await saveRecordingEntry(
-      blob, duration, `free-${generateId()}`, 'Free recording', emotionTag, parentNote
+      blob, duration, `free-${generateId()}`, 'Custom audio', emotionTag, parentNote
     );
 
     const newRecordings = [...collectedRecordings, recording];

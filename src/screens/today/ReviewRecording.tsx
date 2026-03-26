@@ -103,7 +103,7 @@ export function ReviewRecording({
 
       {/* Question or free recording label */}
       <p className="font-nunito font-semibold text-sm text-echo-gray text-center mb-1">
-        {isFreeRecording ? '🎙️ Free Recording' : question ? `"${question.text}"` : ''}
+        {isFreeRecording ? '🎤 Custom Audio' : question ? `"${question.text}"` : ''}
       </p>
 
       {/* Duration badge */}

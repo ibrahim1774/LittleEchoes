@@ -377,5 +377,5 @@ export const CATEGORY_LABELS: Record<string, string> = {
   emotions: '💜 Emotions & Relationships',
   learning: '🌱 Learning & Wonder',
   gratitude: '✨ Gratitude & Reflection',
-  free: '🎙️ Free Recording',
+  free: '🎤 Custom Audio',
 };
