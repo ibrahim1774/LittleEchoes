@@ -343,19 +343,33 @@ export function OnboardingFlow3() {
             </div>
 
             {/* Benefits checklist */}
-            <div className="space-y-2">
-              {[
-                '3 daily questions tailored to their age',
-                'Preserve their voice before it changes',
-                'Memories organized by date & calendar',
-                'Download & share with family anytime',
-                '100% private — your data stays yours',
-              ].map((b) => (
-                <div key={b} className="flex items-center gap-2.5">
-                  <span className="text-sm">✅</span>
-                  <p className="font-inter text-xs text-echo-charcoal dark:text-white leading-snug">{b}</p>
-                </div>
-              ))}
+            <div className="bg-white dark:bg-echo-dark-card rounded-2xl shadow-soft p-4">
+              <p className="font-nunito font-bold text-xs text-echo-gray uppercase tracking-wide mb-3">What you get</p>
+              <div className="space-y-2.5">
+                {[
+                  { icon: '🎯', text: '3 daily questions tailored to their age', color: '#FF6B6B' },
+                  { icon: '🎙️', text: 'Preserve their voice before it changes', color: '#6BC5F8' },
+                  { icon: '📅', text: 'Memories organized by date & calendar', color: '#C4A1FF' },
+                  { icon: '📤', text: 'Download & share with family anytime', color: '#FFD93D' },
+                  { icon: '🔒', text: '100% private — your data stays yours', color: '#A8E06C' },
+                ].map((b, i) => (
+                  <div
+                    key={b.text}
+                    className="flex items-center gap-3 animate-fade-in"
+                    style={{ animationDelay: `${i * 0.1}s`, animationFillMode: 'both' }}
+                  >
+                    <div
+                      className="w-8 h-8 rounded-xl flex items-center justify-center text-base flex-shrink-0"
+                      style={{ backgroundColor: b.color + '20' }}
+                    >
+                      {b.icon}
+                    </div>
+                    <p className="font-nunito font-semibold text-xs text-echo-charcoal dark:text-white leading-snug">
+                      {b.text}
+                    </p>
+                  </div>
+                ))}
+              </div>
             </div>
 
             {/* Plan cards */}
