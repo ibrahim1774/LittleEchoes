@@ -310,7 +310,8 @@ export function Memories() {
 
   const recordingsByDate = new Map<string, Recording[]>();
   for (const g of groups) {
-    recordingsByDate.set(g.session.date, g.recordings);
+    const existing = recordingsByDate.get(g.session.date) ?? [];
+    recordingsByDate.set(g.session.date, [...existing, ...g.recordings]);
   }
 
   const filteredGroups = applyFilter(groups, activeCategory);
