@@ -61,6 +61,11 @@ export function TodayScreen() {
       ? todayQuestions[phase.questionIndex]
       : null;
 
+  function goBackToHub() {
+    dispatch({ type: 'SET_TODAY_PROGRESS', payload: null });
+    setPhase({ step: 'hub' });
+  }
+
   function startQuestionFlow() {
     dispatch({ type: 'SET_TODAY_PROGRESS', payload: {
       sessionId,
@@ -260,67 +265,94 @@ export function TodayScreen() {
     return <SessionComplete recordings={phase.recordings} childName={activeChild.name} />;
   }
 
+  const backButton = (
+    <button
+      onClick={goBackToHub}
+      className="absolute top-4 left-4 z-10 w-10 h-10 rounded-full bg-white/80 dark:bg-echo-dark-card/80 shadow-soft flex items-center justify-center active:scale-95 transition-transform"
+      aria-label="Back to options"
+    >
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-echo-charcoal dark:text-white">
+        <path d="M15 18l-6-6 6-6" />
+      </svg>
+    </button>
+  );
+
   if (phase.step === 'question' && currentQuestion) {
     return (
-      <QuestionDisplay
-        question={currentQuestion}
-        questionIndex={phase.questionIndex}
-        totalQuestions={todayQuestions.length}
-        childName={activeChild.name}
-        onStartRecording={handleStartRecording}
-      />
+      <div className="relative">
+        {backButton}
+        <QuestionDisplay
+          question={currentQuestion}
+          questionIndex={phase.questionIndex}
+          totalQuestions={todayQuestions.length}
+          childName={activeChild.name}
+          onStartRecording={handleStartRecording}
+        />
+      </div>
     );
   }
 
   if (phase.step === 'recording' && currentQuestion) {
     return (
-      <RecordingView
-        question={currentQuestion}
-        questionIndex={phase.questionIndex}
-        totalQuestions={todayQuestions.length}
-        childName={activeChild.name}
-        onDone={handleRecordingDone}
-      />
+      <div className="relative">
+        {backButton}
+        <RecordingView
+          question={currentQuestion}
+          questionIndex={phase.questionIndex}
+          totalQuestions={todayQuestions.length}
+          childName={activeChild.name}
+          onDone={handleRecordingDone}
+        />
+      </div>
     );
   }
 
   if (phase.step === 'review' && currentQuestion) {
     return (
-      <ReviewRecording
-        question={currentQuestion}
-        questionIndex={phase.questionIndex}
-        totalQuestions={todayQuestions.length}
-        blob={phase.blob}
-        duration={phase.duration}
-        onReRecord={handleReRecord}
-        onNext={handleQuestionNext}
-      />
+      <div className="relative">
+        {backButton}
+        <ReviewRecording
+          question={currentQuestion}
+          questionIndex={phase.questionIndex}
+          totalQuestions={todayQuestions.length}
+          blob={phase.blob}
+          duration={phase.duration}
+          onReRecord={handleReRecord}
+          onNext={handleQuestionNext}
+        />
+      </div>
     );
   }
 
   if (phase.step === 'free-recording') {
     return (
-      <RecordingView
-        questionIndex={0}
-        totalQuestions={1}
-        childName={activeChild.name}
-        onDone={handleRecordingDone}
-        isFreeRecording
-      />
+      <div className="relative">
+        {backButton}
+        <RecordingView
+          questionIndex={0}
+          totalQuestions={1}
+          childName={activeChild.name}
+          onDone={handleRecordingDone}
+          isFreeRecording
+        />
+      </div>
     );
   }
 
   if (phase.step === 'free-review') {
     return (
-      <ReviewRecording
-        questionIndex={0}
-        totalQuestions={1}
-        blob={phase.blob}
-        duration={phase.duration}
-        onReRecord={handleReRecord}
-        onNext={handleFreeNext}
-        isFreeRecording
-      />
+      <div className="relative">
+        {backButton}
+        <ReviewRecording
+          questionIndex={0}
+          totalQuestions={1}
+          blob={phase.blob}
+          duration={phase.duration}
+          onReRecord={handleReRecord}
+          onNext={handleFreeNext}
+          isFreeRecording
+        />
+      </div>
     );
   }
 
@@ -334,9 +366,6 @@ export function TodayScreen() {
         <h1 className="font-nunito font-bold text-2xl text-echo-charcoal dark:text-white">
           Record for {activeChild.name}
         </h1>
-        <p className="font-inter text-echo-gray text-sm mt-1">
-          {todayCount} {todayCount === 1 ? 'echo' : 'echoes'} today
-        </p>
       </div>
 
       <div className="space-y-4 animate-fade-in" style={{ animationDelay: '0.15s' }}>

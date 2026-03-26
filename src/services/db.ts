@@ -28,11 +28,21 @@ class LittleEchoesDB extends Dexie {
       streaks: 'childId',
     });
 
-    // Seed starter questions on first open
+    // Seed starter questions on first open + one-time data fixes
     this.on('ready', async () => {
       const count = await this.questions.count();
       if (count === 0) {
         await this.questions.bulkAdd(STARTER_QUESTIONS);
+      }
+
+      // Rename old "Free recording" entries to "Custom audio"
+      const freeRecs = await this.recordings
+        .filter((r) => r.questionText === 'Free recording')
+        .toArray();
+      if (freeRecs.length > 0) {
+        await this.recordings.bulkPut(
+          freeRecs.map((r) => ({ ...r, questionText: 'Custom audio' }))
+        );
       }
     });
   }
