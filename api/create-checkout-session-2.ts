@@ -7,13 +7,13 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
 
 const PRICES = {
   monthly: {
-    unit_amount: 999, // $9.99
-    nickname: 'LittleEchoes Monthly',
+    unit_amount: 499, // $4.99
+    nickname: 'LittleEchoes Monthly (Promo)',
     interval: 'month' as const,
   },
   yearly: {
-    unit_amount: 5999, // $59.99
-    nickname: 'LittleEchoes Yearly',
+    unit_amount: 2999, // $29.99
+    nickname: 'LittleEchoes Yearly (Promo)',
     interval: 'year' as const,
   },
 };
@@ -48,7 +48,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       ],
       mode: 'subscription',
       success_url: `${origin}/payment-success?session_id={CHECKOUT_SESSION_ID}&plan=${plan}&value=${value}`,
-      cancel_url: `${origin}/pricing`,
+      cancel_url: `${origin}/pricing-2`,
     });
 
     return res.status(200).json({ url: session.url });

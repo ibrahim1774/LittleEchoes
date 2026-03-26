@@ -236,7 +236,7 @@ function renderIllustration(type: StorySlide['illustration']) {
   }
 }
 
-export function OnboardingFlow() {
+export function OnboardingFlow({ pricingPath = '/pricing' }: { pricingPath?: string } = {}) {
   const [currentSlide, setCurrentSlide] = useState(0);
   const [answers, setAnswers] = useState<Record<number, number>>({});
   const [selectedOption, setSelectedOption] = useState<number | null>(null);
@@ -304,7 +304,7 @@ export function OnboardingFlow() {
       {/* Skip button */}
       {showSkip && (
         <button
-          onClick={(e) => { e.stopPropagation(); navigate('/pricing'); }}
+          onClick={(e) => { e.stopPropagation(); navigate(pricingPath); }}
           className="absolute top-4 right-4 z-20 font-nunito text-sm text-echo-gray px-3 py-1 rounded-full hover:bg-echo-light-gray/50 transition-colors"
         >
           Skip
@@ -502,7 +502,7 @@ export function OnboardingFlow() {
             </div>
 
             <button
-              onClick={(e) => { e.stopPropagation(); navigate('/pricing'); }}
+              onClick={(e) => { e.stopPropagation(); navigate(pricingPath); }}
               className="w-full bg-echo-coral text-white font-nunito font-bold text-lg py-4 rounded-full shadow-coral active:scale-95 transition-transform mt-2"
             >
               {slide.buttonText}
@@ -518,7 +518,7 @@ export function OnboardingFlow() {
       {/* Tap-to-continue hint (story + promise slides only) */}
       {isStoryOrPromise && (
         <div
-          className="absolute bottom-[20%] left-0 right-0 flex justify-center pointer-events-none z-10"
+          className="absolute bottom-[8%] left-0 right-0 flex justify-center pointer-events-none z-10"
           style={{ opacity: tapHintVisible ? 1 : 0, transition: 'opacity 0.6s ease' }}
         >
           <div className="flex items-center gap-2 bg-echo-charcoal/75 dark:bg-white/20 px-5 py-2.5 rounded-full">
@@ -529,4 +529,8 @@ export function OnboardingFlow() {
       )}
     </div>
   );
+}
+
+export function OnboardingFlow2() {
+  return <OnboardingFlow pricingPath="/pricing-2" />;
 }

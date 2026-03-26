@@ -14,7 +14,8 @@ export function PaymentSuccessScreen() {
 
   useEffect(() => {
     const plan = searchParams.get('plan') ?? 'monthly';
-    const value = PLAN_VALUES[plan] ?? 9.99;
+    const valueParam = searchParams.get('value');
+    const value = valueParam ? parseFloat(valueParam) : (PLAN_VALUES[plan] ?? 9.99);
     const eventId = crypto.randomUUID();
 
     // Client-side pixel

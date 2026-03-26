@@ -5,8 +5,9 @@ import { BottomTabBar } from '@/components/BottomTabBar';
 // Screens
 import { LandingPage } from '@/screens/LandingPage';
 import { Splash } from '@/screens/Splash';
-import { OnboardingFlow } from '@/screens/onboarding/OnboardingFlow';
+import { OnboardingFlow, OnboardingFlow2 } from '@/screens/onboarding/OnboardingFlow';
 import { PricingScreen } from '@/screens/onboarding/PricingScreen';
+import { PricingScreen2 } from '@/screens/onboarding/PricingScreen2';
 import { ParentSetup } from '@/screens/ParentSetup';
 import { AddChild } from '@/screens/AddChild';
 import { Home } from '@/screens/Home';
@@ -39,7 +40,9 @@ function AppShell() {
         <Route path="/start" element={<Splash />} />
         <Route path="/onboarding" element={<Navigate to="/" replace />} />
         <Route path="/onboarding-1" element={<OnboardingFlow />} />
+        <Route path="/onboarding-2" element={<OnboardingFlow2 />} />
         <Route path="/pricing" element={<PricingScreen />} />
+        <Route path="/pricing-2" element={<PricingScreen2 />} />
         <Route path="/payment-success" element={<PaymentSuccessScreen />} />
         <Route path="/signup" element={<SignupScreen />} />
         <Route path="/signin" element={<SigninScreen />} />
