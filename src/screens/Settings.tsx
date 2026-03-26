@@ -468,20 +468,6 @@ export function Settings() {
           </div>
         </div>
 
-        {/* Data & Privacy */}
-        <div className="bg-white dark:bg-echo-dark-card rounded-2xl p-4 shadow-soft">
-          <p className="font-inter text-xs text-echo-gray uppercase tracking-wide mb-3">Data & Privacy</p>
-          <p className="font-nunito text-sm text-echo-charcoal dark:text-white leading-relaxed">
-            All your recordings are stored <strong>locally on this device</strong>. We never access, sell, or train AI on your recordings.
-          </p>
-          {user && (
-            <div className="mt-3 pt-3 border-t border-echo-light-gray dark:border-white/10">
-              <p className="font-inter text-xs text-echo-gray">
-                Cloud sync enabled — signed in as <span className="text-echo-sky">{user.email}</span>
-              </p>
-            </div>
-          )}
-        </div>
 
         {/* About */}
         <div className="bg-white dark:bg-echo-dark-card rounded-2xl p-4 shadow-soft">

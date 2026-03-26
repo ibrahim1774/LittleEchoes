@@ -45,7 +45,7 @@ export function Home() {
     }
 
     void load();
-  }, [activeChild, dispatch]);
+  }, [activeChild, dispatch, state.isOnboarded]);
 
   if (!parent || !activeChild) {
     return (
@@ -84,7 +84,7 @@ export function Home() {
       </div>
 
       {/* Child selector — single child for now */}
-      <div className="flex gap-3 overflow-x-auto pb-2 pt-2 px-1 mb-3 animate-fade-in" style={{ animationDelay: '0.1s' }}>
+      <div className="flex gap-3 overflow-x-auto pb-2 pt-2 px-3 mb-3 animate-fade-in" style={{ animationDelay: '0.1s' }}>
         {state.children.map((child) => (
           <button
             key={child.id}

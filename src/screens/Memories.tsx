@@ -282,7 +282,7 @@ export function Memories() {
         recordingMap.set(rec.sessionId, arr);
       }
       const grouped: GroupedSession[] = sessions
-        .filter((s) => s.status === 'completed')
+        .filter((s) => (recordingMap.get(s.id) ?? []).length > 0)
         .map((s) => ({ session: s, recordings: recordingMap.get(s.id) ?? [] }))
         .sort((a, b) => b.session.date.localeCompare(a.session.date));
       setGroups(grouped);

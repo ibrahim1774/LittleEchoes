@@ -102,6 +102,7 @@ export function TodayScreen() {
     };
 
     await saveRecording(recording);
+    if (state.user) void syncToCloud(state.user);
     const newRecordings = [...collectedRecordings, recording];
     setCollectedRecordings(newRecordings);
 
@@ -121,7 +122,6 @@ export function TodayScreen() {
       const streak = await updateStreak(activeChild.id);
       dispatch({ type: 'SET_STREAK', payload: streak });
 
-      if (state.user) void syncToCloud(state.user);
       setPhase({ step: 'complete', recordings: newRecordings });
     } else {
       setPhase({ step: 'question', questionIndex: questionIndex + 1 });
