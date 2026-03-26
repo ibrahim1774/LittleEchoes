@@ -75,19 +75,6 @@ export function TodayScreen() {
     const { questionIndex } = phase;
     const question = todayQuestions[questionIndex];
 
-    // Create session on first recording
-    if (questionIndex === 0) {
-      const session: RecordingSession = {
-        id: sessionId,
-        childId: activeChild.id,
-        date: new Date().toISOString().split('T')[0],
-        createdAt: new Date().toISOString(),
-        status: 'in-progress',
-      };
-      await saveSession(session);
-      dispatch({ type: 'SET_TODAY_SESSION', payload: session });
-    }
-
     const recording: Recording = {
       id: generateId(),
       sessionId,
@@ -101,26 +88,55 @@ export function TodayScreen() {
       createdAt: new Date().toISOString(),
     };
 
-    await saveRecording(recording);
-    if (state.user) void syncToCloud(state.user);
+    try {
+      // Create session on first recording
+      if (questionIndex === 0) {
+        const session: RecordingSession = {
+          id: sessionId,
+          childId: activeChild.id,
+          date: new Date().toISOString().split('T')[0],
+          createdAt: new Date().toISOString(),
+          status: 'in-progress',
+        };
+        await saveSession(session);
+        dispatch({ type: 'SET_TODAY_SESSION', payload: session });
+      }
+
+      try {
+        await saveRecording(recording);
+      } catch {
+        // Blob storage can fail on mobile Safari — save metadata without audio
+        await saveRecording({ ...recording, audioBlob: undefined });
+      }
+
+      if (state.user) void syncToCloud(state.user);
+    } catch (err) {
+      console.error('Failed to save recording:', err);
+    }
+
+    // ALWAYS advance phase — even if save had issues
     const newRecordings = [...collectedRecordings, recording];
     setCollectedRecordings(newRecordings);
 
     const isLast = questionIndex >= todayQuestions.length - 1;
     if (isLast) {
       // Mark session complete and update streak
-      const completedSession: RecordingSession = {
-        id: sessionId,
-        childId: activeChild.id,
-        date: new Date().toISOString().split('T')[0],
-        createdAt: new Date().toISOString(),
-        status: 'completed',
-      };
-      await saveSession(completedSession);
-      dispatch({ type: 'SET_TODAY_SESSION', payload: completedSession });
+      try {
+        const completedSession: RecordingSession = {
+          id: sessionId,
+          childId: activeChild.id,
+          date: new Date().toISOString().split('T')[0],
+          createdAt: new Date().toISOString(),
+          status: 'completed',
+        };
+        await saveSession(completedSession);
+        dispatch({ type: 'SET_TODAY_SESSION', payload: completedSession });
 
-      const streak = await updateStreak(activeChild.id);
-      dispatch({ type: 'SET_STREAK', payload: streak });
+        const streak = await updateStreak(activeChild.id);
+        dispatch({ type: 'SET_STREAK', payload: streak });
+      } catch (err) {
+        console.error('Failed to complete session:', err);
+      }
 
       setPhase({ step: 'complete', recordings: newRecordings });
     } else {
