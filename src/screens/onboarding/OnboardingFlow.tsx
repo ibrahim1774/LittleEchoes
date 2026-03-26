@@ -415,10 +415,10 @@ export function OnboardingFlow() {
       {/* Tap-to-continue hint (story + promise slides only) */}
       {isStoryOrPromise && (
         <div
-          className="absolute bottom-10 left-0 right-0 flex justify-center pointer-events-none z-10"
+          className="absolute bottom-1/3 left-0 right-0 flex justify-center pointer-events-none z-10"
           style={{ opacity: tapHintVisible ? 1 : 0, transition: 'opacity 0.6s ease' }}
         >
-          <div className="flex items-center gap-2 bg-echo-charcoal/75 dark:bg-white/20 px-5 py-2.5 rounded-full animate-pulse">
+          <div className="flex items-center gap-2 bg-echo-charcoal/75 dark:bg-white/20 px-5 py-2.5 rounded-full">
             <span className="text-base">👆</span>
             <p className="font-nunito font-semibold text-sm text-white">Tap to continue</p>
           </div>

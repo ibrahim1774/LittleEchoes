@@ -104,6 +104,38 @@ body.dark {
   animation: fade-in 0.4s ease both;
 }
 
+/* Floating animation for hero mic */
+@keyframes float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-6px); }
+}
+
+.animate-float {
+  animation: float 3s ease-in-out infinite;
+}
+
+/* Scroll reveal */
+.scroll-hidden {
+  opacity: 0;
+  transform: translateY(20px);
+  transition: opacity 0.4s ease-out, transform 0.4s ease-out;
+}
+
+.scroll-visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* CTA pulse for landing page */
+@keyframes cta-pulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.02); }
+}
+
+.animate-cta-pulse {
+  animation: cta-pulse 2.5s ease-in-out infinite;
+}
+
 /* Dot pattern background */
 .dot-pattern {
   background-image: radial-gradient(circle, #FFD93D22 1px, transparent 1px);
