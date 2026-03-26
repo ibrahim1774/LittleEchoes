@@ -59,6 +59,7 @@ function AudioPlayer({ blob, audioUrl }: { blob?: Blob; audioUrl?: string }) {
   const urlRef = useRef<string | null>(null);
   const [isPlaying, setIsPlaying] = useState(false);
   const [progress, setProgress] = useState(0);
+  const [currentTime, setCurrentTime] = useState(0);
   const [duration, setDuration] = useState(0);
   const [loadingAudio, setLoadingAudio] = useState(false);
   const [audioError, setAudioError] = useState(false);
@@ -87,8 +88,9 @@ function AudioPlayer({ blob, audioUrl }: { blob?: Blob; audioUrl?: string }) {
       audio.onloadedmetadata = () => setDuration(audio.duration);
       audio.ontimeupdate = () => {
         if (audio.duration) setProgress(audio.currentTime / audio.duration);
+        setCurrentTime(audio.currentTime);
       };
-      audio.onended = () => { setIsPlaying(false); setProgress(0); };
+      audio.onended = () => { setIsPlaying(false); setProgress(0); setCurrentTime(0); };
     }
 
     void initAudio();
@@ -149,8 +151,11 @@ function AudioPlayer({ blob, audioUrl }: { blob?: Blob; audioUrl?: string }) {
           style={{ width: `${progress * 100}%` }}
         />
       </div>
-      <span className="font-inter text-xs text-echo-gray w-8 text-right">
-        {formatDuration(Math.round(duration))}
+      <span className="font-inter text-xs text-echo-gray text-right whitespace-nowrap">
+        {isPlaying || currentTime > 0
+          ? `${formatDuration(Math.round(currentTime))} / ${formatDuration(Math.round(duration))}`
+          : formatDuration(Math.round(duration))
+        }
       </span>
     </div>
   );
@@ -215,7 +220,7 @@ function RecordingCard({
         <div className="flex items-center gap-1.5 flex-shrink-0">
           {rec.emotionTag && <span className="text-base">{EMOTION_EMOJIS[rec.emotionTag]}</span>}
           <span className="font-inter text-xs bg-echo-sky/15 text-echo-sky px-2 py-0.5 rounded-full">
-            {formatDuration(rec.durationSeconds)}
+            {rec.durationSeconds ? formatDuration(rec.durationSeconds) : '—'}
           </span>
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"
             className={`text-echo-gray transition-transform ${isOpen ? 'rotate-180' : ''}`}>
