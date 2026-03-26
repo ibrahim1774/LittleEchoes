@@ -41,7 +41,7 @@ export function TodayScreen() {
     () => state.todayProgress?.recordings ?? []
   );
   const [todayCount, setTodayCount] = useState(0);
-  const [mode, setMode] = useState<SessionMode>('hub');
+  const [, setMode] = useState<SessionMode>('hub');
 
   const { activeChild, todayQuestions, parent } = state;
 
