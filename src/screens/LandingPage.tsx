@@ -69,19 +69,6 @@ export function LandingPage() {
         </p>
       </section>
 
-      {/* Social proof */}
-      <div className="mx-5 bg-white rounded-2xl px-4 py-3 shadow-soft flex items-center gap-3 mb-8">
-        <div className="flex -space-x-2">
-          {['👩', '👨', '👩‍🦱', '👨‍🦰'].map((e, i) => (
-            <div key={i} className="w-8 h-8 rounded-full bg-echo-cream border-2 border-white flex items-center justify-center text-sm">{e}</div>
-          ))}
-        </div>
-        <div>
-          <p className="font-nunito font-bold text-echo-charcoal text-sm">Loved by parents</p>
-          <p className="font-inter text-xs text-echo-gray">Thousands of families preserving memories</p>
-        </div>
-      </div>
-
       {/* Features */}
       <section className="px-5 mb-8">
         <p className="font-inter text-xs text-echo-gray uppercase tracking-widest mb-4 text-center">Why LittleEchoes</p>
@@ -119,21 +106,13 @@ export function LandingPage() {
       <section className="mx-5 mb-8 bg-echo-coral rounded-2xl px-5 py-6 text-center text-white">
         <p className="font-inter text-xs uppercase tracking-widest opacity-80 mb-1">Simple pricing</p>
         <p className="font-extrabold text-2xl mb-1">From $10<span className="text-lg font-semibold opacity-80">/month</span></p>
-        <p className="font-inter text-sm opacity-80 mb-5">Billed annually · cancel anytime</p>
+        <p className="font-inter text-sm opacity-80 mb-5">Cancel anytime</p>
         <button
           onClick={() => navigate('/start')}
           className="w-full py-3.5 rounded-full bg-white text-echo-coral font-extrabold text-sm active:scale-95 transition-transform"
         >
-          Start Free Trial
+          Get Started
         </button>
-      </section>
-
-      {/* Quote */}
-      <section className="mx-5 mb-8 bg-white rounded-2xl px-5 py-5 shadow-soft">
-        <p className="font-nunito text-echo-charcoal text-sm leading-relaxed italic mb-3">
-          "I played back my daughter's recording from when she was 4. She's 7 now and I sobbed. Best thing I ever did."
-        </p>
-        <p className="font-inter text-xs text-echo-gray">— Sarah M., mom of two</p>
       </section>
 
       {/* Footer CTA */}
