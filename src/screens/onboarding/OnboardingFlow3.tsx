@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { ParentChildIllustration } from '@/components/illustrations/ParentChildIllustration';
 
 const TOTAL = 5;
@@ -31,6 +31,77 @@ function PhoneMockup({ src, alt, width = 120 }: { src: string; alt: string; widt
       style={{ width }}
     >
       <img src={src} alt={alt} className="w-full h-auto object-contain" loading="lazy" />
+    </div>
+  );
+}
+
+function ProductPreviewCarousel({ onContinue }: { onContinue: () => void }) {
+  const scrollRef = useRef<HTMLDivElement>(null);
+  const [activeSlide, setActiveSlide] = useState(0);
+
+  function handleScroll() {
+    const el = scrollRef.current;
+    if (!el) return;
+    const index = Math.round(el.scrollLeft / el.clientWidth);
+    setActiveSlide(index);
+  }
+
+  return (
+    <div className="flex flex-col w-full pt-2 flex-1">
+      {/* Carousel */}
+      <div
+        ref={scrollRef}
+        onScroll={handleScroll}
+        className="flex overflow-x-auto flex-1"
+        style={{ scrollSnapType: 'x mandatory', scrollbarWidth: 'none' }}
+      >
+        {FEATURES.map((feat, i) => (
+          <div
+            key={i}
+            className="min-w-full flex flex-col items-center justify-center gap-4 px-6"
+            style={{ scrollSnapAlign: 'center' }}
+          >
+            <PhoneMockup src={feat.src} alt={feat.title} width={200} />
+            <div className="text-center space-y-1 max-w-xs">
+              <p className="font-nunito font-bold text-base text-echo-charcoal dark:text-white">
+                {feat.title}
+              </p>
+              <p className="font-inter text-sm text-echo-gray leading-relaxed">
+                {feat.desc}
+              </p>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {/* Dot indicators */}
+      <div className="flex justify-center gap-2 py-3">
+        {FEATURES.map((_, i) => (
+          <div
+            key={i}
+            className={`rounded-full transition-all ${
+              i === activeSlide ? 'w-6 h-2 bg-echo-coral' : 'w-2 h-2 bg-echo-light-gray'
+            }`}
+          />
+        ))}
+      </div>
+
+      {/* Trust strip */}
+      <div className="rounded-xl bg-echo-coral/5 px-4 py-2.5 mx-0">
+        <p className="font-nunito text-xs text-echo-charcoal dark:text-white text-center font-semibold">
+          🔒 Private & secure. Your recordings belong to you.
+        </p>
+      </div>
+
+      {/* CTA — always visible */}
+      <div className="pt-3">
+        <button
+          onClick={onContinue}
+          className="w-full bg-echo-coral text-white font-nunito font-bold text-base py-4 rounded-full shadow-coral active:scale-95 transition-transform"
+        >
+          See My Plan →
+        </button>
+      </div>
     </div>
   );
 }
@@ -239,42 +310,8 @@ export function OnboardingFlow3() {
           </div>
         )}
 
-        {/* ── SCREEN 4: Product Preview ── */}
-        {screen === 3 && (
-          <div className="flex flex-col w-full gap-5 pt-2 flex-1">
-            <div className="space-y-5">
-              {FEATURES.map((feat, i) => (
-                <div key={i} className="flex items-center gap-4 bg-white dark:bg-echo-dark-card rounded-2xl p-4 shadow-soft">
-                  <PhoneMockup src={feat.src} alt={feat.title} width={90} />
-                  <div className="flex-1 min-w-0">
-                    <p className="font-nunito font-bold text-sm text-echo-charcoal dark:text-white mb-1">
-                      {feat.title}
-                    </p>
-                    <p className="font-inter text-xs text-echo-gray leading-relaxed">
-                      {feat.desc}
-                    </p>
-                  </div>
-                </div>
-              ))}
-            </div>
-
-            {/* Trust strip */}
-            <div className="rounded-xl bg-echo-coral/5 px-4 py-3">
-              <p className="font-nunito text-xs text-echo-charcoal dark:text-white text-center font-semibold">
-                🔒 Private & secure. Your recordings belong to you.
-              </p>
-            </div>
-
-            <div className="mt-auto pt-2">
-              <button
-                onClick={advance}
-                className="w-full bg-echo-coral text-white font-nunito font-bold text-base py-4 rounded-full shadow-coral active:scale-95 transition-transform"
-              >
-                See My Plan →
-              </button>
-            </div>
-          </div>
-        )}
+        {/* ── SCREEN 4: Product Preview (Carousel) ── */}
+        {screen === 3 && <ProductPreviewCarousel onContinue={advance} />}
 
         {/* ── SCREEN 5: Paywall ── */}
         {screen === 4 && (
