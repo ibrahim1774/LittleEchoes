@@ -143,6 +143,15 @@ export async function getRecordingsByChild(
     .sortBy('createdAt');
 }
 
+export async function getTodayRecordingCount(childId: string): Promise<number> {
+  const todayStr = today();
+  return db.recordings
+    .where('childId')
+    .equals(childId)
+    .and((r) => r.createdAt.startsWith(todayStr))
+    .count();
+}
+
 export async function getRecordingsByQuestion(
   childId: string,
   questionId: string

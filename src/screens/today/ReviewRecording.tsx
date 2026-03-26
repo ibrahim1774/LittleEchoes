@@ -3,7 +3,7 @@ import type { Question, Recording } from '@/types';
 import { CATEGORY_COLORS } from '@/data/questions';
 
 interface Props {
-  question: Question;
+  question?: Question;
   questionIndex: number;
   totalQuestions: number;
   blob: Blob;
@@ -15,6 +15,7 @@ interface Props {
     emotionTag?: Recording['emotionTag'],
     parentNote?: string
   ) => void;
+  isFreeRecording?: boolean;
 }
 
 const EMOTIONS: { tag: Recording['emotionTag']; emoji: string; label: string; color: string }[] = [
@@ -40,14 +41,15 @@ export function ReviewRecording({
   duration,
   onReRecord,
   onNext,
+  isFreeRecording,
 }: Props) {
   const [selectedEmotion, setSelectedEmotion] = useState<Recording['emotionTag']>(undefined);
   const [parentNote, setParentNote] = useState('');
   const [isPlaying, setIsPlaying] = useState(false);
   const audioRef = useRef<HTMLAudioElement | null>(null);
 
-  const categoryColor = CATEGORY_COLORS[question.category];
-  const isLast = questionIndex >= totalQuestions - 1;
+  const categoryColor = isFreeRecording ? '#8E8E93' : (question ? CATEGORY_COLORS[question.category] : '#FF6B6B');
+  const isLast = isFreeRecording || questionIndex >= totalQuestions - 1;
 
   function togglePlayback() {
     if (!audioRef.current) {
@@ -87,19 +89,21 @@ export function ReviewRecording({
   return (
     <div className="min-h-screen bg-gradient-to-b from-echo-cream to-white dark:from-echo-dark-bg dark:to-echo-dark-card flex flex-col px-6 pt-12 pb-10">
       {/* Progress */}
-      <div className="flex gap-2 mb-6">
-        {Array.from({ length: totalQuestions }).map((_, i) => (
-          <div
-            key={i}
-            className={`h-2 rounded-full ${i === questionIndex ? 'w-10' : 'w-6 opacity-30'}`}
-            style={{ backgroundColor: i <= questionIndex ? categoryColor : '#F0F0F0' }}
-          />
-        ))}
-      </div>
+      {!isFreeRecording && (
+        <div className="flex gap-2 mb-6">
+          {Array.from({ length: totalQuestions }).map((_, i) => (
+            <div
+              key={i}
+              className={`h-2 rounded-full ${i === questionIndex ? 'w-10' : 'w-6 opacity-30'}`}
+              style={{ backgroundColor: i <= questionIndex ? categoryColor : '#F0F0F0' }}
+            />
+          ))}
+        </div>
+      )}
 
-      {/* Question */}
+      {/* Question or free recording label */}
       <p className="font-nunito font-semibold text-sm text-echo-gray text-center mb-1">
-        "{question.text}"
+        {isFreeRecording ? '🎙️ Free Recording' : question ? `"${question.text}"` : ''}
       </p>
 
       {/* Duration badge */}
@@ -183,7 +187,7 @@ export function ReviewRecording({
           onClick={handleNext}
           className="w-full bg-echo-coral text-white font-nunito font-bold text-base py-4 rounded-full shadow-coral active:scale-95 transition-transform"
         >
-          {isLast ? '✨ Finish Session' : 'Next Question →'}
+          {isFreeRecording ? '✨ Save Recording' : isLast ? '✨ Finish Session' : 'Next Question →'}
         </button>
 
         <button

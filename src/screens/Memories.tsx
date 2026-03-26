@@ -33,6 +33,7 @@ const CATEGORY_CHIPS = [
   { key: 'emotions',    label: 'Emotions',   icon: '💜' },
   { key: 'learning',    label: 'Learning',   icon: '🌱' },
   { key: 'gratitude',   label: 'Gratitude',  icon: '💛' },
+  { key: 'free',        label: 'Free',       icon: '🎙️' },
 ];
 
 const MONTH_NAMES = [

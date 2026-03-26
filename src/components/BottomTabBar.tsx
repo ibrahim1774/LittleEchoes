@@ -3,7 +3,7 @@ import { useApp } from '@/context/AppContext';
 
 const tabs = [
   { to: '/home', label: 'Home', icon: HomeIcon },
-  { to: '/today', label: 'Today', icon: MicIcon, featured: true },
+  { to: '/today', label: 'Record', icon: MicIcon, featured: true },
   { to: '/memories', label: 'Memories', icon: SparklesIcon },
   { to: '/settings', label: 'Settings', icon: SettingsIcon },
 ];

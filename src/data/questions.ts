@@ -368,6 +368,7 @@ export const CATEGORY_COLORS: Record<string, string> = {
   emotions: '#C4A1FF',
   learning: '#A8E06C',
   gratitude: '#FFD93D',
+  free: '#8E8E93',
 };
 
 export const CATEGORY_LABELS: Record<string, string> = {
@@ -376,4 +377,5 @@ export const CATEGORY_LABELS: Record<string, string> = {
   emotions: '💜 Emotions & Relationships',
   learning: '🌱 Learning & Wonder',
   gratitude: '✨ Gratitude & Reflection',
+  free: '🎙️ Free Recording',
 };

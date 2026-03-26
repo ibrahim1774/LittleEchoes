@@ -15,7 +15,7 @@ function getBestMimeType(): string {
   return '';
 }
 
-export function useRecording() {
+export function useRecording(maxSeconds = 60) {
   const [recordingState, setRecordingState] = useState<RecordingState>('idle');
   const [elapsedSeconds, setElapsedSeconds] = useState(0);
   const [audioBlob, setAudioBlob] = useState<Blob | null>(null);
@@ -25,6 +25,7 @@ export function useRecording() {
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const chunksRef = useRef<Blob[]>([]);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const autoStopRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   // Store stream in a ref for cleanup — avoids the effect re-running when stream state changes
   const streamRef = useRef<MediaStream | null>(null);
   // Guard against React StrictMode double-invoking startRecording via useEffect
@@ -35,6 +36,7 @@ export function useRecording() {
     return () => {
       startedRef.current = false;
       if (timerRef.current) clearInterval(timerRef.current);
+      if (autoStopRef.current) clearTimeout(autoStopRef.current);
       streamRef.current?.getTracks().forEach((t) => t.stop());
     };
   }, []);
@@ -77,6 +79,17 @@ export function useRecording() {
       timerRef.current = setInterval(() => {
         setElapsedSeconds((s) => s + 1);
       }, 1000);
+
+      // Auto-stop after max duration
+      if (maxSeconds > 0) {
+        autoStopRef.current = setTimeout(() => {
+          if (timerRef.current) {
+            clearInterval(timerRef.current);
+            timerRef.current = null;
+          }
+          recorder.stop();
+        }, maxSeconds * 1000);
+      }
     } catch (err) {
       startedRef.current = false; // allow retry on permission error
       if (err instanceof Error) {
@@ -95,11 +108,16 @@ export function useRecording() {
       clearInterval(timerRef.current);
       timerRef.current = null;
     }
+    if (autoStopRef.current) {
+      clearTimeout(autoStopRef.current);
+      autoStopRef.current = null;
+    }
     mediaRecorderRef.current?.stop();
   }, []);
 
   const reset = useCallback(() => {
     if (timerRef.current) clearInterval(timerRef.current);
+    if (autoStopRef.current) clearTimeout(autoStopRef.current);
     streamRef.current?.getTracks().forEach((t) => t.stop());
     streamRef.current = null;
     startedRef.current = false;
@@ -115,6 +133,7 @@ export function useRecording() {
   return {
     recordingState,
     elapsedSeconds,
+    maxSeconds,
     audioBlob,
     stream,
     error,

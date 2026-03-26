@@ -5,11 +5,12 @@ import { useAudioWaveform } from '@/hooks/useAudioWaveform';
 import { CATEGORY_COLORS } from '@/data/questions';
 
 interface Props {
-  question: Question;
+  question?: Question;
   questionIndex: number;
   totalQuestions: number;
   childName: string;
   onDone: (blob: Blob, duration: number) => void;
+  isFreeRecording?: boolean;
 }
 
 function formatTime(s: number): string {
@@ -28,19 +29,23 @@ const BUBBLES = Array.from({ length: 12 }, (_, i) => ({
   color: ['#FF6B6B', '#FFD93D', '#6BC5F8', '#C4A1FF', '#A8E06C'][i % 5],
 }));
 
+const MAX_SECONDS = 60;
+
 export function RecordingView({
   question,
   questionIndex,
   totalQuestions,
   childName,
   onDone,
+  isFreeRecording,
 }: Props) {
   const { recordingState, elapsedSeconds, audioBlob, stream, error, startRecording, stopRecording } =
-    useRecording();
+    useRecording(MAX_SECONDS);
 
   const barHeights = useAudioWaveform(stream, recordingState === 'recording');
 
-  const categoryColor = CATEGORY_COLORS[question.category];
+  const categoryColor = isFreeRecording ? '#8E8E93' : (question ? CATEGORY_COLORS[question.category] : '#FF6B6B');
+  const remaining = Math.max(0, MAX_SECONDS - elapsedSeconds);
 
   // Start recording immediately on mount
   useEffect(() => {
@@ -79,29 +84,50 @@ export function RecordingView({
       ))}
 
       {/* Progress */}
-      <div className="flex gap-2 mb-6">
-        {Array.from({ length: totalQuestions }).map((_, i) => (
-          <div
-            key={i}
-            className={`h-2 rounded-full ${i === questionIndex ? 'w-10' : 'w-6 opacity-30'}`}
-            style={{ backgroundColor: i <= questionIndex ? categoryColor : '#F0F0F0' }}
-          />
-        ))}
+      {!isFreeRecording && (
+        <div className="flex gap-2 mb-6">
+          {Array.from({ length: totalQuestions }).map((_, i) => (
+            <div
+              key={i}
+              className={`h-2 rounded-full ${i === questionIndex ? 'w-10' : 'w-6 opacity-30'}`}
+              style={{ backgroundColor: i <= questionIndex ? categoryColor : '#F0F0F0' }}
+            />
+          ))}
+        </div>
+      )}
+
+      {/* Question text or free recording label */}
+      {isFreeRecording ? (
+        <p className="font-nunito font-semibold text-base text-echo-charcoal dark:text-white text-center mb-2 px-2">
+          🎙️ Free Recording
+        </p>
+      ) : question ? (
+        <p className="font-nunito font-semibold text-sm text-echo-gray dark:text-echo-gray text-center mb-2 px-2">
+          "{question.text}"
+        </p>
+      ) : null}
+
+      {!isFreeRecording && question && (
+        <p className="font-inter text-echo-gray text-xs mb-8">
+          Question {questionIndex + 1} of {totalQuestions}
+        </p>
+      )}
+
+      {isFreeRecording && (
+        <p className="font-inter text-echo-gray text-xs mb-8">
+          Record anything — up to 1 minute
+        </p>
+      )}
+
+      {/* Timer with countdown */}
+      <div className="flex flex-col items-center mb-4">
+        <p className="font-nunito font-bold text-xl text-echo-charcoal dark:text-white tabular-nums">
+          {formatTime(elapsedSeconds)}
+        </p>
+        <p className={`font-inter text-xs mt-1 tabular-nums ${remaining <= 10 ? 'text-echo-coral font-semibold' : 'text-echo-gray'}`}>
+          {remaining}s remaining
+        </p>
       </div>
-
-      {/* Question text (smaller, top reference) */}
-      <p className="font-nunito font-semibold text-sm text-echo-gray dark:text-echo-gray text-center mb-2 px-2">
-        "{question.text}"
-      </p>
-
-      <p className="font-inter text-echo-gray text-xs mb-8">
-        Question {questionIndex + 1} of {totalQuestions}
-      </p>
-
-      {/* Timer */}
-      <p className="font-nunito font-bold text-xl text-echo-charcoal dark:text-white mb-4 tabular-nums">
-        {formatTime(elapsedSeconds)}
-      </p>
 
       {/* Stop button (pulsing) */}
       <button
@@ -124,7 +150,9 @@ export function RecordingView({
       />
 
       <p className="font-nunito text-echo-gray text-sm mt-6 mb-6 z-10">
-        Recording {childName}'s answer... tap to stop
+        {isFreeRecording
+          ? `Recording ${childName}'s voice... tap to stop`
+          : `Recording ${childName}'s answer... tap to stop`}
       </p>
 
       {/* Waveform visualizer */}
