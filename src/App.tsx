@@ -49,7 +49,6 @@ function AppShell() {
           path="/home"
           element={
             !state.isOnboarded ? <Navigate to="/onboarding-1" replace /> :
-            !state.user ? <Navigate to="/signin" replace /> :
             <Home />
           }
         />
@@ -57,7 +56,6 @@ function AppShell() {
           path="/today"
           element={
             !state.isOnboarded ? <Navigate to="/onboarding-1" replace /> :
-            !state.user ? <Navigate to="/signin" replace /> :
             <TodayScreen />
           }
         />
@@ -65,7 +63,6 @@ function AppShell() {
           path="/memories"
           element={
             !state.isOnboarded ? <Navigate to="/onboarding-1" replace /> :
-            !state.user ? <Navigate to="/signin" replace /> :
             <Memories />
           }
         />
@@ -73,7 +70,6 @@ function AppShell() {
           path="/settings"
           element={
             !state.isOnboarded ? <Navigate to="/onboarding-1" replace /> :
-            !state.user ? <Navigate to="/signin" replace /> :
             <Settings />
           }
         />

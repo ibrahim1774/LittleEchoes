@@ -8,14 +8,12 @@ export function SignupScreen() {
   const { dispatch } = useApp();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [confirm, setConfirm] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState(false);
 
   async function handleSignup(e: React.FormEvent) {
     e.preventDefault();
-    if (password !== confirm) { setError('Passwords do not match.'); return; }
     if (password.length < 6) { setError('Password must be at least 6 characters.'); return; }
     setLoading(true);
     setError('');
@@ -80,18 +78,6 @@ export function SignupScreen() {
             className="w-full bg-white dark:bg-echo-dark-card rounded-2xl px-4 py-3.5 font-inter text-sm text-echo-charcoal dark:text-white outline-none border-2 border-transparent focus:border-echo-coral transition-colors"
           />
         </div>
-        <div>
-          <label className="font-inter text-xs text-echo-gray uppercase tracking-wide block mb-1.5">Confirm Password</label>
-          <input
-            type="password"
-            value={confirm}
-            onChange={(e) => setConfirm(e.target.value)}
-            required
-            placeholder="Repeat password"
-            className="w-full bg-white dark:bg-echo-dark-card rounded-2xl px-4 py-3.5 font-inter text-sm text-echo-charcoal dark:text-white outline-none border-2 border-transparent focus:border-echo-coral transition-colors"
-          />
-        </div>
-
         {error && <p className="font-inter text-xs text-red-500 text-center">{error}</p>}
 
         <button

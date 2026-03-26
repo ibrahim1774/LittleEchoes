@@ -54,7 +54,7 @@ export function SigninScreen() {
       <div className="text-center mb-8">
         <div className="text-4xl mb-3">🔐</div>
         <h1 className="font-nunito font-extrabold text-2xl text-echo-charcoal dark:text-white">Welcome back</h1>
-        <p className="font-inter text-echo-gray text-sm mt-1">Sign in to access your echoes</p>
+        <p className="font-inter text-echo-gray text-sm mt-1">For LittleEchoes subscribers</p>
       </div>
 
       <form onSubmit={(e) => void handleSignin(e)} className="space-y-4">
@@ -101,7 +101,7 @@ export function SigninScreen() {
       </button>
 
       <p className="font-inter text-xs text-echo-gray text-center mt-6">
-        New here?{' '}
+        Not a subscriber yet?{' '}
         <button onClick={() => navigate('/pricing')} className="text-echo-coral font-semibold">Get started</button>
       </p>
     </div>

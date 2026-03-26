@@ -214,6 +214,7 @@ export function Memories() {
   const [viewMode, setViewMode] = useState<'timeline' | 'calendar'>('timeline');
   const [activeCategory, setActiveCategory] = useState<string | null>(null);
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
+  const recordingsRef = useRef<HTMLDivElement>(null);
   const now = new Date();
   const [calMonth, setCalMonth] = useState({ year: now.getFullYear(), month: now.getMonth() });
 
@@ -444,7 +445,12 @@ export function Memories() {
                 return (
                   <button
                     key={dateStr}
-                    onClick={() => hasRec && setSelectedDate(isSelected ? null : dateStr)}
+                    onClick={() => {
+                      if (!hasRec) return;
+                      const next = isSelected ? null : dateStr;
+                      setSelectedDate(next);
+                      if (next) setTimeout(() => recordingsRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 100);
+                    }}
                     disabled={!hasRec}
                     className="flex flex-col items-center justify-center py-1.5 rounded-xl transition-all"
                     style={
@@ -479,7 +485,7 @@ export function Memories() {
 
           {/* Selected day recordings */}
           {selectedDate ? (
-            <div>
+            <div ref={recordingsRef}>
               <div className="flex items-center gap-2 mb-3">
                 <span className="text-xl">{activeChild.avatarEmoji}</span>
                 <h3 className="font-nunito font-bold text-sm text-echo-charcoal dark:text-white">
