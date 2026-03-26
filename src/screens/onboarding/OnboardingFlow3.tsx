@@ -335,12 +335,14 @@ export function OnboardingFlow3() {
               </p>
             </div>
 
-            {/* Trial banner */}
-            <div className="rounded-2xl bg-echo-coral/10 px-4 py-3 text-center">
-              <p className="font-nunito font-bold text-sm text-echo-coral">
-                🎉 Try free for 3 days — cancel anytime
-              </p>
-            </div>
+            {/* Trial banner — yearly only */}
+            {selectedPlan === 'yearly' && (
+              <div className="rounded-2xl bg-echo-coral/10 px-4 py-3 text-center">
+                <p className="font-nunito font-bold text-sm text-echo-coral">
+                  🎉 Try free for 3 days — cancel anytime
+                </p>
+              </div>
+            )}
 
             {/* Benefits checklist */}
             <div className="bg-white dark:bg-echo-dark-card rounded-2xl shadow-soft p-4">
@@ -389,7 +391,7 @@ export function OnboardingFlow3() {
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="font-nunito font-bold text-sm text-echo-charcoal dark:text-white">Yearly</p>
-                    <p className="font-inter text-xs text-echo-gray mt-0.5">$5/mo — billed $60/year</p>
+                    <p className="font-inter text-xs text-echo-gray mt-0.5">$5/mo — billed $60/year · 3-day free trial</p>
                   </div>
                   <div className="flex items-center gap-2">
                     <span className="font-nunito font-extrabold text-lg text-echo-coral">$60</span>
@@ -446,11 +448,11 @@ export function OnboardingFlow3() {
                 disabled={loading}
                 className="w-full py-4 rounded-full bg-echo-coral text-white font-nunito font-extrabold text-base shadow-coral active:scale-95 transition-transform disabled:opacity-60"
               >
-                {loading ? 'Redirecting to checkout...' : 'Start My 3-Day Free Trial'}
+                {loading ? 'Redirecting to checkout...' : selectedPlan === 'yearly' ? 'Start My 3-Day Free Trial' : 'Subscribe — $10/mo'}
               </button>
 
               <p className="font-inter text-xs text-echo-gray text-center">
-                You won't be charged for 3 days. Cancel anytime.
+                {selectedPlan === 'yearly' ? "You won't be charged for 3 days. Cancel anytime." : 'Cancel anytime.'}
               </p>
             </div>
           </div>
