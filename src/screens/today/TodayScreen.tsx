@@ -28,11 +28,11 @@ export function TodayScreen() {
   const navigate = useNavigate();
 
   const [sessionId] = useState(() => state.todayProgress?.sessionId ?? generateId());
-  const [phase, setPhase] = useState<SessionPhase>(() =>
-    state.todayProgress
-      ? { step: 'question', questionIndex: state.todayProgress.questionIndex }
-      : { step: 'hub' }
-  );
+  const [phase, setPhase] = useState<SessionPhase>(() => {
+    if (!state.todayProgress) return { step: 'hub' };
+    if (state.todayProgress.flow === 'free') return { step: 'free-recording' };
+    return { step: 'question', questionIndex: state.todayProgress.questionIndex };
+  });
   const [collectedRecordings, setCollectedRecordings] = useState<Recording[]>(
     () => state.todayProgress?.recordings ?? []
   );
@@ -62,10 +62,22 @@ export function TodayScreen() {
       : null;
 
   function startQuestionFlow() {
+    dispatch({ type: 'SET_TODAY_PROGRESS', payload: {
+      sessionId,
+      questionIndex: 0,
+      recordings: collectedRecordings,
+      flow: 'questions',
+    }});
     setPhase({ step: 'question', questionIndex: 0 });
   }
 
   function startFreeRecording() {
+    dispatch({ type: 'SET_TODAY_PROGRESS', payload: {
+      sessionId,
+      questionIndex: 0,
+      recordings: collectedRecordings,
+      flow: 'free',
+    }});
     setPhase({ step: 'free-recording' });
   }
 
@@ -198,6 +210,7 @@ export function TodayScreen() {
         sessionId,
         questionIndex: nextIndex,
         recordings: newRecordings,
+        flow: 'questions',
       }});
       setPhase({ step: 'question', questionIndex: nextIndex });
     }
@@ -327,8 +340,8 @@ export function TodayScreen() {
       </div>
 
       <div className="space-y-4 animate-fade-in" style={{ animationDelay: '0.15s' }}>
-        {/* Answer Questions option */}
-        {todayQuestions.length > 0 && (
+        {/* Answer Questions option — hidden for age 1-2 */}
+        {activeChild.ageGroup !== '1-2' && todayQuestions.length > 0 && (
           <button
             onClick={startQuestionFlow}
             className="w-full bg-white dark:bg-echo-dark-card rounded-2xl p-5 shadow-soft text-left active:scale-[0.98] transition-transform"

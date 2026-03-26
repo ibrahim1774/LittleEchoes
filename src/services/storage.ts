@@ -28,6 +28,7 @@ function calcAgeGroup(birthdate: string): AgeGroup {
     (now.getFullYear() - birth.getFullYear()) * 12 +
     (now.getMonth() - birth.getMonth());
   const years = Math.floor(ageMonths / 12);
+  if (years <= 2) return '1-2';
   if (years <= 4) return '3-4';
   if (years <= 6) return '5-6';
   if (years <= 9) return '7-9';

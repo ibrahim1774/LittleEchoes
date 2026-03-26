@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useApp } from '@/context/AppContext';
 import { getQuestionsForChild, getStreak, getRecordingsByChild } from '@/services/storage';
+import { supabase } from '@/services/supabase';
 import { CATEGORY_COLORS, CATEGORY_LABELS } from '@/data/questions';
 import type { Recording } from '@/types';
 
@@ -24,8 +25,15 @@ export function Home() {
   const { state, dispatch } = useApp();
   const navigate = useNavigate();
   const [recentRecordings, setRecentRecordings] = useState<Recording[]>([]);
+  const [showProfileMenu, setShowProfileMenu] = useState(false);
 
   const { parent, activeChild, todayQuestions, streak, user } = state;
+
+  function handleSignOut() {
+    dispatch({ type: 'SET_USER', payload: null });
+    navigate('/');
+    void supabase.auth.signOut();
+  }
 
   useEffect(() => {
     if (!activeChild) return;
@@ -64,20 +72,39 @@ export function Home() {
           <h1 className="font-nunito font-bold text-2xl text-echo-charcoal dark:text-white">
             Hi, {parent.name}! 👋
           </h1>
-          {!user ? (
-            <Link
-              to="/signin"
-              className="font-nunito font-semibold text-xs text-echo-coral border border-echo-coral/30 px-3 py-1.5 rounded-full active:scale-95 transition-transform"
+          <div className="relative">
+            <button
+              onClick={() => setShowProfileMenu((v) => !v)}
+              className="w-9 h-9 rounded-full bg-echo-coral flex items-center justify-center active:scale-95 transition-transform"
             >
-              Sign In
-            </Link>
-          ) : (
-            <div className="w-8 h-8 rounded-full bg-echo-coral/15 flex items-center justify-center">
-              <span className="text-xs font-nunito font-bold text-echo-coral">
-                {user.email.charAt(0).toUpperCase()}
+              <span className="text-sm font-nunito font-bold text-white">
+                {parent.name.charAt(0).toUpperCase()}
               </span>
-            </div>
-          )}
+            </button>
+            {showProfileMenu && (
+              <>
+                <div className="fixed inset-0 z-10" onClick={() => setShowProfileMenu(false)} />
+                <div className="absolute right-0 mt-2 w-40 bg-white dark:bg-echo-dark-card rounded-xl shadow-lg z-20 overflow-hidden">
+                  {user ? (
+                    <button
+                      onClick={() => { setShowProfileMenu(false); handleSignOut(); }}
+                      className="w-full px-4 py-3 text-left font-nunito text-sm text-echo-charcoal dark:text-white active:bg-echo-light-gray dark:active:bg-white/10"
+                    >
+                      Sign Out
+                    </button>
+                  ) : (
+                    <Link
+                      to="/signin"
+                      onClick={() => setShowProfileMenu(false)}
+                      className="block px-4 py-3 font-nunito text-sm text-echo-coral"
+                    >
+                      Sign In
+                    </Link>
+                  )}
+                </div>
+              </>
+            )}
+          </div>
         </div>
         <p className="font-inter text-echo-gray text-sm mt-0.5">
           {formatDate(new Date())}
@@ -116,40 +143,48 @@ export function Home() {
         <div className="flex items-center gap-2 mb-4">
           <span className="text-2xl">{activeChild.avatarEmoji}</span>
           <p className="font-nunito font-bold text-echo-charcoal dark:text-white text-base">
-            Today's questions for {activeChild.name}
+            {activeChild.ageGroup === '1-2'
+              ? `Record ${activeChild.name}'s voice`
+              : `Today's questions for ${activeChild.name}`}
           </p>
         </div>
 
-        {/* Question previews */}
-        <div className="space-y-2.5 mb-5">
-          {todayQuestions.length > 0 ? (
-            todayQuestions.map((q, i) => (
-              <div key={q.id} className="flex items-start gap-3">
-                <div
-                  className="w-2.5 h-2.5 rounded-full flex-shrink-0 mt-1.5"
-                  style={{ backgroundColor: CATEGORY_COLORS[q.category] }}
-                />
-                <div className="flex-1">
-                  <p className="font-nunito text-echo-charcoal dark:text-white text-sm leading-snug line-clamp-1">
-                    {q.text}
-                  </p>
-                  <p className="font-inter text-echo-gray text-xs mt-0.5">
-                    {CATEGORY_LABELS[q.category]}
-                  </p>
+        {activeChild.ageGroup === '1-2' ? (
+          <p className="font-inter text-echo-gray text-sm mb-5">
+            Capture their little voice — babbles, first words, giggles, anything!
+          </p>
+        ) : (
+          /* Question previews */
+          <div className="space-y-2.5 mb-5">
+            {todayQuestions.length > 0 ? (
+              todayQuestions.map((q, i) => (
+                <div key={q.id} className="flex items-start gap-3">
+                  <div
+                    className="w-2.5 h-2.5 rounded-full flex-shrink-0 mt-1.5"
+                    style={{ backgroundColor: CATEGORY_COLORS[q.category] }}
+                  />
+                  <div className="flex-1">
+                    <p className="font-nunito text-echo-charcoal dark:text-white text-sm leading-snug line-clamp-1">
+                      {q.text}
+                    </p>
+                    <p className="font-inter text-echo-gray text-xs mt-0.5">
+                      {CATEGORY_LABELS[q.category]}
+                    </p>
+                  </div>
+                  <span className="font-inter text-xs text-echo-gray font-semibold">Q{i + 1}</span>
                 </div>
-                <span className="font-inter text-xs text-echo-gray font-semibold">Q{i + 1}</span>
-              </div>
-            ))
-          ) : (
-            // Loading skeleton
-            Array.from({ length: 3 }).map((_, i) => (
-              <div key={i} className="flex items-start gap-3">
-                <div className="w-2.5 h-2.5 rounded-full flex-shrink-0 mt-1.5 bg-echo-light-gray" />
-                <div className="flex-1 h-4 bg-echo-light-gray rounded animate-pulse" />
-              </div>
-            ))
-          )}
-        </div>
+              ))
+            ) : (
+              // Loading skeleton
+              Array.from({ length: 3 }).map((_, i) => (
+                <div key={i} className="flex items-start gap-3">
+                  <div className="w-2.5 h-2.5 rounded-full flex-shrink-0 mt-1.5 bg-echo-light-gray" />
+                  <div className="flex-1 h-4 bg-echo-light-gray rounded animate-pulse" />
+                </div>
+              ))
+            )}
+          </div>
+        )}
 
         {/* Start recording CTA */}
         <button

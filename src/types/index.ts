@@ -4,7 +4,7 @@
 // Future: Swap storage.ts to Supabase — types remain the same
 // ============================================================
 
-export type AgeGroup = '3-4' | '5-6' | '7-9' | '10-12';
+export type AgeGroup = '1-2' | '3-4' | '5-6' | '7-9' | '10-12';
 export type QuestionCategory = 'favorites' | 'challenges' | 'emotions' | 'learning' | 'gratitude';
 export type EmotionTag = 'happy' | 'silly' | 'thoughtful' | 'shy' | 'excited' | 'sad';
 export type QuestionMode = 'fresh' | 'fixed';
@@ -86,6 +86,7 @@ export interface TodayProgress {
   sessionId: string;
   questionIndex: number;
   recordings: Recording[];
+  flow: 'questions' | 'free';
 }
 
 // App state

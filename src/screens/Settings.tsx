@@ -40,7 +40,7 @@ const CATEGORY_OPTIONS: { value: QuestionCategory; label: string }[] = [
   { value: 'gratitude', label: 'Gratitude & Reflection' },
 ];
 
-const AGE_GROUP_OPTIONS: AgeGroup[] = ['3-4', '5-6', '7-9', '10-12'];
+const AGE_GROUP_OPTIONS: AgeGroup[] = ['1-2', '3-4', '5-6', '7-9', '10-12'];
 const DAY_OPTIONS = ['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun'];
 const DAY_LABELS: Record<string, string> = {
   mon: 'M', tue: 'T', wed: 'W', thu: 'Th', fri: 'F', sat: 'Sa', sun: 'Su',
@@ -74,7 +74,7 @@ export function Settings() {
   const [customQuestions, setCustomQuestions] = useState<Question[]>([]);
   const [newQText, setNewQText] = useState('');
   const [newQCategory, setNewQCategory] = useState<QuestionCategory>('favorites');
-  const [newQAgeGroups, setNewQAgeGroups] = useState<AgeGroup[]>(['3-4', '5-6', '7-9', '10-12']);
+  const [newQAgeGroups, setNewQAgeGroups] = useState<AgeGroup[]>(['1-2', '3-4', '5-6', '7-9', '10-12']);
   const [savingQ, setSavingQ] = useState(false);
 
   useEffect(() => {
