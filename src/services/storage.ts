@@ -153,6 +153,10 @@ export async function getTodayRecordingCount(childId: string): Promise<number> {
     .count();
 }
 
+export async function deleteRecording(id: string): Promise<void> {
+  await db.recordings.delete(id);
+}
+
 export async function getRecordingsByQuestion(
   childId: string,
   questionId: string

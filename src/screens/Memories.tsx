@@ -1,7 +1,7 @@
 import { useEffect, useState, useRef } from 'react';
 import { useApp } from '@/context/AppContext';
-import { getRecordingsByChild, getSessionsByChild } from '@/services/storage';
-import { downloadAudioFromCloud } from '@/services/cloudSync';
+import { getRecordingsByChild, getSessionsByChild, deleteRecording } from '@/services/storage';
+import { downloadAudioFromCloud, deleteRecordingFromCloud } from '@/services/cloudSync';
 import { EmptyMemoriesIllustration } from '@/components/illustrations/EmptyMemoriesIllustration';
 import { CATEGORY_COLORS, CATEGORY_LABELS } from '@/data/questions';
 import type { Recording, RecordingSession } from '@/types';
@@ -199,11 +199,13 @@ function RecordingCard({
   isOpen,
   onToggle,
   childName,
+  onDelete,
 }: {
   rec: Recording;
   isOpen: boolean;
   onToggle: () => void;
   childName: string;
+  onDelete: (id: string) => void;
 }) {
   const catKey = rec.questionId.split('-')[0];
   const catColor = CATEGORY_COLORS[catKey] ?? '#8E8E93';
@@ -234,18 +236,35 @@ function RecordingCard({
       {isOpen && (
         <div className="px-4 pb-4 pt-0 border-t border-echo-light-gray dark:border-white/10">
           <AudioPlayer blob={rec.audioBlob} audioUrl={rec.audioUrl} fallbackDuration={rec.durationSeconds} />
-          <button
-            onClick={() => void downloadRecording(rec, childName)}
-            className="mt-2 flex items-center gap-1.5 text-echo-gray hover:text-echo-coral transition-colors active:scale-95"
-            aria-label="Download recording"
-          >
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/>
-              <polyline points="7 10 12 15 17 10"/>
-              <line x1="12" y1="15" x2="12" y2="3"/>
-            </svg>
-            <span className="font-inter text-xs">Download</span>
-          </button>
+          <div className="mt-2 flex items-center gap-4">
+            <button
+              onClick={() => void downloadRecording(rec, childName)}
+              className="flex items-center gap-1.5 text-echo-gray hover:text-echo-coral transition-colors active:scale-95"
+              aria-label="Download recording"
+            >
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/>
+                <polyline points="7 10 12 15 17 10"/>
+                <line x1="12" y1="15" x2="12" y2="3"/>
+              </svg>
+              <span className="font-inter text-xs">Download</span>
+            </button>
+            <button
+              onClick={() => {
+                if (window.confirm('Delete this recording? This cannot be undone.')) {
+                  onDelete(rec.id);
+                }
+              }}
+              className="flex items-center gap-1.5 text-echo-gray hover:text-red-500 transition-colors active:scale-95"
+              aria-label="Delete recording"
+            >
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <polyline points="3 6 5 6 21 6"/>
+                <path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"/>
+              </svg>
+              <span className="font-inter text-xs">Delete</span>
+            </button>
+          </div>
           {rec.transcription && (
             <p className="font-nunito text-sm text-echo-gray mt-3 italic leading-relaxed">"{rec.transcription}"</p>
           )}
@@ -305,6 +324,23 @@ export function Memories() {
       if (next.has(recId)) next.delete(recId); else next.add(recId);
       return next;
     });
+  }
+
+  function handleDeleteRecording(recId: string) {
+    // Remove from local state immediately
+    setGroups((prev) =>
+      prev
+        .map((g) => ({ ...g, recordings: g.recordings.filter((r) => r.id !== recId) }))
+        .filter((g) => g.recordings.length > 0)
+    );
+    // Find the recording to get audioUrl before deleting
+    const rec = groups.flatMap((g) => g.recordings).find((r) => r.id === recId);
+    // Delete from IndexedDB
+    void deleteRecording(recId);
+    // Delete from cloud if signed in
+    if (state.user) {
+      void deleteRecordingFromCloud(state.user, recId, rec?.audioUrl);
+    }
   }
 
   const datesWithRecordings = new Set(groups.map((g) => g.session.date));
@@ -439,6 +475,7 @@ export function Memories() {
                       isOpen={expanded.has(rec.id)}
                       onToggle={() => toggleExpanded(rec.id)}
                       childName={activeChild.name}
+                      onDelete={handleDeleteRecording}
                     />
                   ))}
                 </div>
@@ -565,6 +602,7 @@ export function Memories() {
                       isOpen={expanded.has(rec.id)}
                       onToggle={() => toggleExpanded(rec.id)}
                       childName={activeChild.name}
+                      onDelete={handleDeleteRecording}
                     />
                   ))}
                 </div>

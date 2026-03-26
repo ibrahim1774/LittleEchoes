@@ -146,6 +146,24 @@ export async function loadFromCloud(user: AuthUser): Promise<void> {
 }
 
 /**
+ * Delete a recording from Supabase (both metadata row and audio file in Storage).
+ */
+export async function deleteRecordingFromCloud(
+  user: AuthUser,
+  recordingId: string,
+  audioUrl?: string
+): Promise<void> {
+  try {
+    await supabase.from('recordings').delete().eq('id', recordingId).eq('user_id', user.id);
+    if (audioUrl) {
+      await supabase.storage.from(STORAGE_BUCKET).remove([audioUrl]);
+    }
+  } catch {
+    // Best-effort
+  }
+}
+
+/**
  * Download an audio recording from Supabase Storage.
  * Used when playing back recordings on a device that doesn't have the local blob.
  */
