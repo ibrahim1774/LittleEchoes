@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/services/supabase';
 import { useApp } from '@/context/AppContext';
+import { syncToCloud } from '@/services/cloudSync';
 
 export function SignupScreen() {
   const navigate = useNavigate();
@@ -26,7 +27,9 @@ export function SignupScreen() {
     }
 
     if (data.user) {
-      dispatch({ type: 'SET_USER', payload: { id: data.user.id, email: data.user.email ?? '' } });
+      const user = { id: data.user.id, email: data.user.email ?? '' };
+      dispatch({ type: 'SET_USER', payload: user });
+      void syncToCloud(user);
     }
 
     setSuccess(true);

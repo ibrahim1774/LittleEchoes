@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useApp } from '@/context/AppContext';
 import { saveSession, saveRecording, updateStreak } from '@/services/storage';
+import { syncToCloud } from '@/services/cloudSync';
 import type { Recording, RecordingSession } from '@/types';
 import { QuestionDisplay } from './QuestionDisplay';
 import { RecordingView } from './RecordingView';
@@ -120,6 +121,7 @@ export function TodayScreen() {
       const streak = await updateStreak(activeChild.id);
       dispatch({ type: 'SET_STREAK', payload: streak });
 
+      if (state.user) void syncToCloud(state.user);
       setPhase({ step: 'complete', recordings: newRecordings });
     } else {
       setPhase({ step: 'question', questionIndex: questionIndex + 1 });

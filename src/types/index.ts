@@ -61,7 +61,8 @@ export interface Recording {
   childId: string;
   questionId: string;
   questionText: string; // snapshot at recording time
-  audioBlob: Blob; // IndexedDB stores Blob; Supabase will store URL
+  audioBlob?: Blob; // present for local recordings
+  audioUrl?: string; // Supabase Storage path for cloud recordings
   durationSeconds: number;
   transcription?: string;
   emotionTag?: EmotionTag;

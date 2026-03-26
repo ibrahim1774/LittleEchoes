@@ -1,6 +1,7 @@
 import { useEffect, useState, useRef } from 'react';
 import { useApp } from '@/context/AppContext';
 import { getRecordingsByChild, getSessionsByChild } from '@/services/storage';
+import { downloadAudioFromCloud } from '@/services/cloudSync';
 import { EmptyMemoriesIllustration } from '@/components/illustrations/EmptyMemoriesIllustration';
 import { CATEGORY_COLORS, CATEGORY_LABELS } from '@/data/questions';
 import type { Recording, RecordingSession } from '@/types';
@@ -52,23 +53,50 @@ function toDateStr(year: number, month: number, day: number): string {
   return `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
 }
 
-function AudioPlayer({ blob }: { blob: Blob }) {
+function AudioPlayer({ blob, audioUrl }: { blob?: Blob; audioUrl?: string }) {
   const audioRef = useRef<HTMLAudioElement | null>(null);
+  const urlRef = useRef<string | null>(null);
   const [isPlaying, setIsPlaying] = useState(false);
   const [progress, setProgress] = useState(0);
   const [duration, setDuration] = useState(0);
+  const [loadingAudio, setLoadingAudio] = useState(false);
+  const [audioError, setAudioError] = useState(false);
 
   useEffect(() => {
-    const url = URL.createObjectURL(blob);
-    const audio = new Audio(url);
-    audioRef.current = audio;
-    audio.onloadedmetadata = () => setDuration(audio.duration);
-    audio.ontimeupdate = () => {
-      if (audio.duration) setProgress(audio.currentTime / audio.duration);
+    let cancelled = false;
+
+    async function initAudio() {
+      let audioBlob = blob;
+
+      // If no local blob, download from Supabase Storage
+      if (!audioBlob && audioUrl) {
+        setLoadingAudio(true);
+        audioBlob = await downloadAudioFromCloud(audioUrl) ?? undefined;
+        setLoadingAudio(false);
+        if (cancelled) return;
+        if (!audioBlob) { setAudioError(true); return; }
+      }
+
+      if (!audioBlob) { setAudioError(true); return; }
+
+      const url = URL.createObjectURL(audioBlob);
+      urlRef.current = url;
+      const audio = new Audio(url);
+      audioRef.current = audio;
+      audio.onloadedmetadata = () => setDuration(audio.duration);
+      audio.ontimeupdate = () => {
+        if (audio.duration) setProgress(audio.currentTime / audio.duration);
+      };
+      audio.onended = () => { setIsPlaying(false); setProgress(0); };
+    }
+
+    void initAudio();
+    return () => {
+      cancelled = true;
+      audioRef.current?.pause();
+      if (urlRef.current) URL.revokeObjectURL(urlRef.current);
     };
-    audio.onended = () => { setIsPlaying(false); setProgress(0); };
-    return () => { audio.pause(); URL.revokeObjectURL(url); };
-  }, [blob]);
+  }, [blob, audioUrl]);
 
   function togglePlay() {
     if (!audioRef.current) return;
@@ -82,6 +110,21 @@ function AudioPlayer({ blob }: { blob: Blob }) {
     const ratio = (e.clientX - rect.left) / rect.width;
     audioRef.current.currentTime = ratio * duration;
     setProgress(ratio);
+  }
+
+  if (loadingAudio) {
+    return (
+      <div className="flex items-center gap-2 mt-2 py-2">
+        <div className="w-4 h-4 border-2 border-echo-sky border-t-transparent rounded-full animate-spin" />
+        <span className="font-inter text-xs text-echo-gray">Loading audio...</span>
+      </div>
+    );
+  }
+
+  if (audioError) {
+    return (
+      <p className="font-inter text-xs text-echo-gray mt-2">Audio not available on this device</p>
+    );
   }
 
   return (
@@ -127,8 +170,13 @@ function applyFilter(groups: GroupedSession[], cat: string | null): GroupedSessi
     .filter((g) => g.recordings.length > 0);
 }
 
-function downloadRecording(rec: Recording, childName: string) {
-  const url = URL.createObjectURL(rec.audioBlob);
+async function downloadRecording(rec: Recording, childName: string) {
+  let blob = rec.audioBlob;
+  if (!blob && rec.audioUrl) {
+    blob = await downloadAudioFromCloud(rec.audioUrl) ?? undefined;
+  }
+  if (!blob) return;
+  const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
   a.href = url;
   a.download = `${childName}_${rec.createdAt.slice(0, 10)}_echo.webm`;
@@ -177,9 +225,9 @@ function RecordingCard({
 
       {isOpen && (
         <div className="px-4 pb-4 pt-0 border-t border-echo-light-gray dark:border-white/10">
-          <AudioPlayer blob={rec.audioBlob} />
+          <AudioPlayer blob={rec.audioBlob} audioUrl={rec.audioUrl} />
           <button
-            onClick={() => downloadRecording(rec, childName)}
+            onClick={() => void downloadRecording(rec, childName)}
             className="mt-2 flex items-center gap-1.5 text-echo-gray hover:text-echo-coral transition-colors active:scale-95"
             aria-label="Download recording"
           >

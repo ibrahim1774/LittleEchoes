@@ -12,6 +12,7 @@ import {
 import { requestNotificationPermission } from '@/services/notifications';
 import type { Question, QuestionCategory, AgeGroup } from '@/types';
 import { supabase } from '@/services/supabase';
+import { syncToCloud } from '@/services/cloudSync';
 
 function PencilIcon() {
   return (
@@ -108,6 +109,7 @@ export function Settings() {
     dispatch({ type: 'TOGGLE_DARK_MODE' });
     if (parent) {
       await saveParent({ ...parent, settings: { ...parent.settings, darkMode: !darkMode } });
+      if (user) void syncToCloud(user);
     }
   }
 
@@ -122,6 +124,7 @@ export function Settings() {
     const updated = { ...parent, name: parentNameDraft.trim() };
     await saveParent(updated);
     dispatch({ type: 'SET_PARENT', payload: updated });
+    if (user) void syncToCloud(user);
     setEditingParent(false);
   }
 
@@ -140,6 +143,7 @@ export function Settings() {
       type: 'SET_CHILDREN',
       payload: state.children.map((c) => (c.id === updated.id ? updated : c)),
     });
+    if (user) void syncToCloud(user);
     setEditingChild(false);
   }
 
@@ -177,6 +181,7 @@ export function Settings() {
     const updated = { ...parent, settings: { ...parent.settings, reminderTime, reminderDays } };
     await saveParent(updated);
     dispatch({ type: 'SET_PARENT', payload: updated });
+    if (user) void syncToCloud(user);
   }
 
   function toggleReminderDay(day: string) {

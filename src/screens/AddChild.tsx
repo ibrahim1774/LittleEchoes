@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useApp } from '@/context/AppContext';
 import { saveChild, calcAgeGroup } from '@/services/storage';
+import { syncToCloud } from '@/services/cloudSync';
 import type { ChildProfile } from '@/types';
 
 const CHILD_AVATARS = ['👧', '👦', '🧒', '👶', '🧒‍♀️', '🧒‍♂️', '🦊', '🐰', '🦄', '🐻', '🌟', '🐼'];
@@ -86,6 +87,7 @@ export function AddChild() {
 
     await saveChild(child);
     dispatch({ type: 'ADD_CHILD', payload: child });
+    if (state.user) void syncToCloud(state.user);
     setShowConfetti(true);
   }
 
