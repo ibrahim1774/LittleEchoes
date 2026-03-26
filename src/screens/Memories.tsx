@@ -86,7 +86,11 @@ function AudioPlayer({ blob, audioUrl, fallbackDuration }: { blob?: Blob; audioU
       urlRef.current = url;
       const audio = new Audio(url);
       audioRef.current = audio;
-      audio.onloadedmetadata = () => setDuration(audio.duration);
+      audio.onloadedmetadata = () => {
+        if (audio.duration && isFinite(audio.duration) && audio.duration > 0) {
+          setDuration(audio.duration);
+        }
+      };
       audio.ontimeupdate = () => {
         if (audio.duration) setProgress(audio.currentTime / audio.duration);
         setCurrentTime(audio.currentTime);
@@ -153,10 +157,7 @@ function AudioPlayer({ blob, audioUrl, fallbackDuration }: { blob?: Blob; audioU
         />
       </div>
       <span className="font-inter text-xs text-echo-gray text-right whitespace-nowrap">
-        {isPlaying || currentTime > 0
-          ? `${formatDuration(Math.round(currentTime))} / ${formatDuration(Math.round(duration))}`
-          : formatDuration(Math.round(duration))
-        }
+        {formatDuration(Math.round(currentTime))} / {formatDuration(Math.round(duration))}
       </span>
     </div>
   );
@@ -214,7 +215,7 @@ function RecordingCard({
         <div className="w-2.5 h-2.5 rounded-full flex-shrink-0 mt-1.5" style={{ backgroundColor: catColor }} />
         <div className="flex-1 min-w-0">
           <p className={`font-nunito font-semibold text-sm text-echo-charcoal dark:text-white leading-snug ${isOpen ? '' : 'line-clamp-2'}`}>
-            {rec.questionText}
+            {rec.questionText === 'Free recording' ? 'Custom audio' : rec.questionText}
           </p>
           <p className="font-inter text-xs text-echo-gray mt-0.5">{catLabel}</p>
         </div>

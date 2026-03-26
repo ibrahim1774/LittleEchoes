@@ -237,7 +237,7 @@ export function Home() {
                   </span>
                 </div>
                 <p className="font-nunito text-echo-charcoal dark:text-white text-xs leading-snug line-clamp-2 mb-2">
-                  {rec.questionText}
+                  {rec.questionText === 'Free recording' ? 'Custom audio' : rec.questionText}
                 </p>
                 <div className="flex items-center justify-between">
                   <div
