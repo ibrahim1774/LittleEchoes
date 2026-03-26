@@ -74,16 +74,26 @@ function ProductPreviewCarousel({ onContinue }: { onContinue: () => void }) {
         ))}
       </div>
 
-      {/* Dot indicators */}
-      <div className="flex justify-center gap-2 py-3">
-        {FEATURES.map((_, i) => (
-          <div
-            key={i}
-            className={`rounded-full transition-all ${
-              i === activeSlide ? 'w-6 h-2 bg-echo-coral' : 'w-2 h-2 bg-echo-light-gray'
-            }`}
-          />
-        ))}
+      {/* Dot indicators + step label */}
+      <div className="flex flex-col items-center gap-1.5 py-3">
+        <div className="flex gap-2">
+          {FEATURES.map((_, i) => (
+            <div
+              key={i}
+              className={`rounded-full transition-all ${
+                i === activeSlide ? 'w-6 h-2 bg-echo-coral' : 'w-2 h-2 bg-echo-light-gray'
+              }`}
+            />
+          ))}
+        </div>
+        <p className="font-nunito font-semibold text-xs text-echo-charcoal dark:text-white">
+          Step {activeSlide + 1} of {FEATURES.length}
+        </p>
+        {activeSlide < FEATURES.length - 1 && (
+          <p className="font-inter text-xs text-echo-gray">
+            Swipe to see the next step →
+          </p>
+        )}
       </div>
 
       {/* Trust strip */}
@@ -330,6 +340,22 @@ export function OnboardingFlow3() {
               <p className="font-nunito font-bold text-sm text-echo-coral">
                 🎉 Try free for 3 days — cancel anytime
               </p>
+            </div>
+
+            {/* Benefits checklist */}
+            <div className="space-y-2">
+              {[
+                '3 daily questions tailored to their age',
+                'Preserve their voice before it changes',
+                'Memories organized by date & calendar',
+                'Download & share with family anytime',
+                '100% private — your data stays yours',
+              ].map((b) => (
+                <div key={b} className="flex items-center gap-2.5">
+                  <span className="text-sm">✅</span>
+                  <p className="font-inter text-xs text-echo-charcoal dark:text-white leading-snug">{b}</p>
+                </div>
+              ))}
             </div>
 
             {/* Plan cards */}
