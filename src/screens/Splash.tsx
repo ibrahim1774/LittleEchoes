@@ -14,7 +14,7 @@ export function Splash() {
       } else if (state.isOnboarded) {
         navigate('/pricing', { replace: true });
       } else {
-        navigate('/onboarding', { replace: true });
+        navigate('/onboarding-1', { replace: true });
       }
     }, 1500);
     return () => clearTimeout(timer);

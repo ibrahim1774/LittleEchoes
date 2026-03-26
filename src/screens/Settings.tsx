@@ -209,6 +209,7 @@ export function Settings() {
   async function handleSignOut() {
     await supabase.auth.signOut();
     dispatch({ type: 'SET_USER', payload: null });
+    navigate('/');
   }
 
   function toggleAgeGroup(ag: AgeGroup) {

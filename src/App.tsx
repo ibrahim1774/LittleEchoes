@@ -3,6 +3,7 @@ import { AppProvider, useApp } from '@/context/AppContext';
 import { BottomTabBar } from '@/components/BottomTabBar';
 
 // Screens
+import { LandingPage } from '@/screens/LandingPage';
 import { Splash } from '@/screens/Splash';
 import { OnboardingFlow } from '@/screens/onboarding/OnboardingFlow';
 import { PricingScreen } from '@/screens/onboarding/PricingScreen';
@@ -34,8 +35,10 @@ function AppShell() {
   return (
     <div className="min-h-screen bg-echo-cream dark:bg-echo-dark-bg font-nunito max-w-[480px] mx-auto relative">
       <Routes>
-        <Route path="/" element={<Splash />} />
-        <Route path="/onboarding" element={<OnboardingFlow />} />
+        <Route path="/" element={<LandingPage />} />
+        <Route path="/start" element={<Splash />} />
+        <Route path="/onboarding" element={<Navigate to="/onboarding-1" replace />} />
+        <Route path="/onboarding-1" element={<OnboardingFlow />} />
         <Route path="/pricing" element={<PricingScreen />} />
         <Route path="/payment-success" element={<PaymentSuccessScreen />} />
         <Route path="/signup" element={<SignupScreen />} />
@@ -45,32 +48,32 @@ function AppShell() {
         <Route
           path="/home"
           element={
-            !state.isOnboarded ? <Navigate to="/onboarding" replace /> :
-            !state.user ? <Navigate to="/pricing" replace /> :
+            !state.isOnboarded ? <Navigate to="/onboarding-1" replace /> :
+            !state.user ? <Navigate to="/signin" replace /> :
             <Home />
           }
         />
         <Route
           path="/today"
           element={
-            !state.isOnboarded ? <Navigate to="/onboarding" replace /> :
-            !state.user ? <Navigate to="/pricing" replace /> :
+            !state.isOnboarded ? <Navigate to="/onboarding-1" replace /> :
+            !state.user ? <Navigate to="/signin" replace /> :
             <TodayScreen />
           }
         />
         <Route
           path="/memories"
           element={
-            !state.isOnboarded ? <Navigate to="/onboarding" replace /> :
-            !state.user ? <Navigate to="/pricing" replace /> :
+            !state.isOnboarded ? <Navigate to="/onboarding-1" replace /> :
+            !state.user ? <Navigate to="/signin" replace /> :
             <Memories />
           }
         />
         <Route
           path="/settings"
           element={
-            !state.isOnboarded ? <Navigate to="/onboarding" replace /> :
-            !state.user ? <Navigate to="/pricing" replace /> :
+            !state.isOnboarded ? <Navigate to="/onboarding-1" replace /> :
+            !state.user ? <Navigate to="/signin" replace /> :
             <Settings />
           }
         />

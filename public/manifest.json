@@ -2,7 +2,7 @@
   "name": "LittleEchoes",
   "short_name": "LittleEchoes",
   "description": "Capture their echoes today. Relive them forever.",
-  "start_url": "/",
+  "start_url": "/start",
   "display": "standalone",
   "background_color": "#FFF9F0",
   "theme_color": "#FF6B6B",
