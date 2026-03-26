@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useApp } from '@/context/AppContext';
 import { saveParent } from '@/services/storage';
+import { syncToCloud } from '@/services/cloudSync';
 import type { ParentProfile } from '@/types';
 
 const PARENT_AVATARS = ['👩', '👨', '👩‍🦱', '👨‍🦱', '👩‍🦰', '👨‍🦰', '🧑', '🧔'];
@@ -15,7 +16,7 @@ export function ParentSetup() {
   const [avatar, setAvatar] = useState('👩');
   const [error, setError] = useState('');
   const navigate = useNavigate();
-  const { dispatch } = useApp();
+  const { state, dispatch } = useApp();
 
   async function handleContinue() {
     if (!name.trim()) {
@@ -39,6 +40,7 @@ export function ParentSetup() {
 
     await saveParent(parent);
     dispatch({ type: 'SET_PARENT', payload: parent });
+    if (state.user) void syncToCloud(state.user);
     dispatch({ type: 'SET_ONBOARDED', payload: false }); // still need child
     navigate('/setup/child');
   }

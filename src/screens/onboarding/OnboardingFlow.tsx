@@ -270,7 +270,7 @@ export function OnboardingFlow() {
       {/* Skip button */}
       {showSkip && (
         <button
-          onClick={(e) => { e.stopPropagation(); navigate('/setup/parent'); }}
+          onClick={(e) => { e.stopPropagation(); navigate('/pricing'); }}
           className="absolute top-4 right-4 z-20 font-nunito text-sm text-echo-gray px-3 py-1 rounded-full hover:bg-echo-light-gray/50 transition-colors"
         >
           Skip
@@ -399,7 +399,7 @@ export function OnboardingFlow() {
             </div>
 
             <button
-              onClick={(e) => { e.stopPropagation(); navigate('/setup/parent'); }}
+              onClick={(e) => { e.stopPropagation(); navigate('/pricing'); }}
               className="w-full bg-echo-coral text-white font-nunito font-bold text-lg py-4 rounded-full shadow-coral active:scale-95 transition-transform mt-2"
             >
               {slide.buttonText}

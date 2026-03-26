@@ -59,13 +59,13 @@ export function LandingPage() {
           LittleEchoes asks your child 3 simple questions a day and records their answers. One day, you'll treasure every word.
         </p>
         <button
-          onClick={() => navigate('/start')}
+          onClick={() => navigate('/pricing')}
           className="w-full max-w-xs mx-auto block py-4 rounded-full bg-echo-coral text-white font-extrabold text-base shadow-coral active:scale-95 transition-transform mb-3"
         >
           Start Capturing Echoes
         </button>
         <p className="font-inter text-xs text-echo-gray">
-          Free trial · No credit card needed to start
+          Plans from $10/month
         </p>
       </section>
 
@@ -108,7 +108,7 @@ export function LandingPage() {
         <p className="font-extrabold text-2xl mb-1">From $10<span className="text-lg font-semibold opacity-80">/month</span></p>
         <p className="font-inter text-sm opacity-80 mb-5">Cancel anytime</p>
         <button
-          onClick={() => navigate('/start')}
+          onClick={() => navigate('/pricing')}
           className="w-full py-3.5 rounded-full bg-white text-echo-coral font-extrabold text-sm active:scale-95 transition-transform"
         >
           Get Started
@@ -124,10 +124,10 @@ export function LandingPage() {
           Start recording today. Your future self will thank you.
         </p>
         <button
-          onClick={() => navigate('/start')}
+          onClick={() => navigate('/pricing')}
           className="w-full py-4 rounded-full bg-echo-coral text-white font-extrabold text-base shadow-coral active:scale-95 transition-transform mb-4"
         >
-          Get Started Free
+          Get Started
         </button>
         <p className="font-inter text-xs text-echo-gray">
           Already have an account?{' '}

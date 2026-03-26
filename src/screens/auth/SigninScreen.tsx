@@ -46,7 +46,9 @@ export function SigninScreen() {
       }
     }
 
-    navigate('/home', { replace: true });
+    // If parent data was loaded from cloud, go home. Otherwise, set up profile.
+    const parentLoaded = await getParent();
+    navigate(parentLoaded ? '/home' : '/setup/parent', { replace: true });
   }
 
   async function handleForgotPassword() {

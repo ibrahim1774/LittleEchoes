@@ -33,7 +33,7 @@ export function SignupScreen() {
     }
 
     setSuccess(true);
-    setTimeout(() => navigate('/home', { replace: true }), 1500);
+    setTimeout(() => navigate('/setup/parent', { replace: true }), 1500);
   }
 
   if (success) {
@@ -41,7 +41,7 @@ export function SignupScreen() {
       <div className="min-h-screen bg-echo-cream dark:bg-echo-dark-bg flex flex-col items-center justify-center px-8 text-center">
         <div className="text-5xl mb-4">✅</div>
         <h2 className="font-nunito font-extrabold text-xl text-echo-charcoal dark:text-white">Account created!</h2>
-        <p className="font-inter text-echo-gray text-sm mt-2">Taking you to your echoes...</p>
+        <p className="font-inter text-echo-gray text-sm mt-2">Let's set up your profile...</p>
       </div>
     );
   }
