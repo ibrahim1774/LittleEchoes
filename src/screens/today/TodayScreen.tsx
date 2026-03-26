@@ -36,8 +36,6 @@ export function TodayScreen() {
   const [collectedRecordings, setCollectedRecordings] = useState<Recording[]>(
     () => state.todayProgress?.recordings ?? []
   );
-  const [todayCount, setTodayCount] = useState(0);
-
   const { activeChild, todayQuestions, parent } = state;
 
   if (!activeChild || !parent) {
@@ -203,7 +201,7 @@ export function TodayScreen() {
 
     const newRecordings = [...collectedRecordings, recording];
     setCollectedRecordings(newRecordings);
-    setTodayCount((c) => c + 1);
+
 
     const nextIndex = questionIndex + 1;
     const isLast = questionIndex >= todayQuestions.length - 1;
@@ -236,7 +234,7 @@ export function TodayScreen() {
 
     const newRecordings = [...collectedRecordings, recording];
     setCollectedRecordings(newRecordings);
-    setTodayCount((c) => c + 1);
+
 
     // Mark session complete, update streak, go back to hub
     try {
