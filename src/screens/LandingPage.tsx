@@ -118,7 +118,7 @@ export function LandingPage() {
       {/* Pricing teaser */}
       <section className="mx-5 mb-8 bg-echo-coral rounded-2xl px-5 py-6 text-center text-white">
         <p className="font-inter text-xs uppercase tracking-widest opacity-80 mb-1">Simple pricing</p>
-        <p className="font-extrabold text-2xl mb-1">From $5<span className="text-lg font-semibold opacity-80">/month</span></p>
+        <p className="font-extrabold text-2xl mb-1">From $10<span className="text-lg font-semibold opacity-80">/month</span></p>
         <p className="font-inter text-sm opacity-80 mb-5">Billed annually · cancel anytime</p>
         <button
           onClick={() => navigate('/start')}
