@@ -337,6 +337,7 @@ export function Memories() {
   const [growthRange, setGrowthRange] = useState<'3m' | '6m' | '1y' | 'all'>('all');
   const [growthInterval, setGrowthInterval] = useState<number>(7);
   const [playAllIndex, setPlayAllIndex] = useState<number | null>(null);
+  const [shuffleSeed, setShuffleSeed] = useState(0);
   const playAllAudioRef = useRef<HTMLAudioElement | null>(null);
   const growthCardRefs = useRef<Map<number, HTMLDivElement>>(new Map());
 
@@ -450,8 +451,8 @@ export function Memories() {
         return d >= windowStart && d < windowEnd;
       });
       if (windowRecs.length > 0) {
-        // Deterministic "random" pick using child ID + window index
-        const seed = (activeChild?.id ?? '').length + w;
+        // Pick using child ID + window index + shuffle seed
+        const seed = (activeChild?.id ?? '').length + w + shuffleSeed * 7;
         montage.push(windowRecs[seed % windowRecs.length]);
       }
     }
@@ -785,11 +786,27 @@ export function Memories() {
             </div>
           ) : (
             <>
-              {/* Header + Play All */}
+              {/* Header + Shuffle + Play All */}
               <div className="flex items-center justify-between mb-4">
-                <p className="font-nunito font-bold text-sm text-echo-charcoal dark:text-white">
-                  {growthMontage.length} echo{growthMontage.length !== 1 ? 'es' : ''} selected
-                </p>
+                <div className="flex items-center gap-2">
+                  <p className="font-nunito font-bold text-sm text-echo-charcoal dark:text-white">
+                    {growthMontage.length} echo{growthMontage.length !== 1 ? 'es' : ''}
+                  </p>
+                  <button
+                    onClick={() => { setShuffleSeed((s) => s + 1); setPlayAllIndex(null); }}
+                    className="flex items-center gap-1 px-3 py-1.5 rounded-full bg-white dark:bg-echo-dark-card text-echo-gray shadow-soft font-nunito font-semibold text-xs transition-all active:scale-95"
+                    aria-label="Shuffle recordings"
+                  >
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <polyline points="16 3 21 3 21 8"/>
+                      <line x1="4" y1="20" x2="21" y2="3"/>
+                      <polyline points="21 16 21 21 16 21"/>
+                      <line x1="15" y1="15" x2="21" y2="21"/>
+                      <line x1="4" y1="4" x2="9" y2="9"/>
+                    </svg>
+                    Shuffle
+                  </button>
+                </div>
                 <button
                   onClick={() => {
                     if (playAllIndex !== null) {
