@@ -18,6 +18,7 @@ import { Settings } from '@/screens/Settings';
 import { PaymentSuccessScreen } from '@/screens/auth/PaymentSuccessScreen';
 import { SignupScreen } from '@/screens/auth/SignupScreen';
 import { SigninScreen } from '@/screens/auth/SigninScreen';
+import { DebugConsole } from '@/components/DebugConsole';
 
 const TAB_ROUTES = ['/home', '/today', '/memories', '/settings'];
 
@@ -91,6 +92,7 @@ export default function App() {
     <BrowserRouter>
       <AppProvider>
         <AppShell />
+        <DebugConsole />
       </AppProvider>
     </BrowserRouter>
   );
