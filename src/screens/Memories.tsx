@@ -434,7 +434,8 @@ export function Memories() {
         montage.push(windowRecs[seed % windowRecs.length]);
       }
     }
-    return montage;
+    // Only include recordings that have playable audio
+    return montage.filter((r) => r.audioBlob || r.audioUrl);
   })();
 
   function prevMonth() {
@@ -843,14 +844,18 @@ export function Memories() {
                               ? 'Custom audio'
                               : rec.questionText}
                           </p>
-                          <AudioPlayer
-                            blob={rec.audioBlob}
-                            audioUrl={rec.audioUrl}
-                            fallbackDuration={rec.durationSeconds}
-                            userId={state.user?.id}
-                            recordingId={rec.id}
-                            mimeType={rec.mimeType}
-                          />
+                          {rec.audioBlob || rec.audioUrl ? (
+                            <AudioPlayer
+                              blob={rec.audioBlob}
+                              audioUrl={rec.audioUrl}
+                              fallbackDuration={rec.durationSeconds}
+                              userId={state.user?.id}
+                              recordingId={rec.id}
+                              mimeType={rec.mimeType}
+                            />
+                          ) : (
+                            <p className="font-inter text-xs text-echo-gray mt-2">Audio unavailable</p>
+                          )}
                         </div>
                       </div>
                     );
