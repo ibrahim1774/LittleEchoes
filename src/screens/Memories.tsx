@@ -843,18 +843,14 @@ export function Memories() {
                               ? 'Custom audio'
                               : rec.questionText}
                           </p>
-                          {rec.audioBlob || rec.audioUrl ? (
-                            <AudioPlayer
-                              blob={rec.audioBlob}
-                              audioUrl={rec.audioUrl}
-                              fallbackDuration={rec.durationSeconds}
-                              userId={state.user?.id}
-                              recordingId={rec.id}
-                              mimeType={rec.mimeType}
-                            />
-                          ) : (
-                            <p className="font-inter text-xs text-echo-gray mt-2">Audio unavailable</p>
-                          )}
+                          <AudioPlayer
+                            blob={rec.audioBlob}
+                            audioUrl={rec.audioUrl}
+                            fallbackDuration={rec.durationSeconds}
+                            userId={state.user?.id}
+                            recordingId={rec.id}
+                            mimeType={rec.mimeType}
+                          />
                         </div>
                       </div>
                     );
