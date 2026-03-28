@@ -55,7 +55,7 @@ function toDateStr(year: number, month: number, day: number): string {
   return `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
 }
 
-function AudioPlayer({ blob, audioUrl, fallbackDuration, userId, recordingId }: { blob?: Blob; audioUrl?: string; fallbackDuration?: number; userId?: string; recordingId: string }) {
+function AudioPlayer({ blob, audioUrl, fallbackDuration, userId, recordingId, mimeType }: { blob?: Blob; audioUrl?: string; fallbackDuration?: number; userId?: string; recordingId: string; mimeType?: string }) {
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const urlRef = useRef<string | null>(null);
   const [isPlaying, setIsPlaying] = useState(false);
@@ -111,10 +111,11 @@ function AudioPlayer({ blob, audioUrl, fallbackDuration, userId, recordingId }: 
       return;
     }
 
-    // Need to download from cloud first — try audioUrl, then fallback path
+    // Need to download from cloud first — try audioUrl, then fallback paths with both extensions
     const pathsToTry = [
       audioUrl,
       userId ? `${userId}/${recordingId}.webm` : null,
+      userId ? `${userId}/${recordingId}.mp4` : null,
     ].filter((p): p is string => !!p);
 
     if (pathsToTry.length === 0) { setAudioError(true); return; }
@@ -129,7 +130,12 @@ function AudioPlayer({ blob, audioUrl, fallbackDuration, userId, recordingId }: 
 
     if (!downloaded) { setAudioError(true); return; }
 
-    const audio = setupAudio(downloaded);
+    // Re-wrap blob with correct MIME type to help the browser pick the right decoder
+    const typedBlob = mimeType && downloaded.type !== mimeType
+      ? new Blob([downloaded], { type: mimeType })
+      : downloaded;
+
+    const audio = setupAudio(typedBlob);
     // Play immediately — still within the user-gesture chain on most browsers
     try {
       await audio.play();
@@ -261,7 +267,7 @@ function RecordingCard({
 
       {isOpen && (
         <div className="px-4 pb-4 pt-0 border-t border-echo-light-gray dark:border-white/10">
-          <AudioPlayer blob={rec.audioBlob} audioUrl={rec.audioUrl} fallbackDuration={rec.durationSeconds} userId={userId} recordingId={rec.id} />
+          <AudioPlayer blob={rec.audioBlob} audioUrl={rec.audioUrl} fallbackDuration={rec.durationSeconds} userId={userId} recordingId={rec.id} mimeType={rec.mimeType} />
           <div className="mt-2 flex items-center gap-4">
             <button
               onClick={() => void downloadRecording(rec, childName)}

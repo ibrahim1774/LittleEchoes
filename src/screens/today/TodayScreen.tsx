@@ -14,9 +14,9 @@ type SessionPhase =
   | { step: 'hub' }
   | { step: 'question'; questionIndex: number }
   | { step: 'recording'; questionIndex: number }
-  | { step: 'review'; questionIndex: number; blob: Blob; duration: number }
+  | { step: 'review'; questionIndex: number; blob: Blob; duration: number; mimeType: string }
   | { step: 'free-recording' }
-  | { step: 'free-review'; blob: Blob; duration: number }
+  | { step: 'free-review'; blob: Blob; duration: number; mimeType: string }
   | { step: 'complete'; recordings: Recording[] };
 
 function generateId() {
@@ -88,11 +88,11 @@ export function TodayScreen() {
     setPhase((p) => ({ ...p, step: 'recording' } as SessionPhase));
   }
 
-  function handleRecordingDone(blob: Blob, duration: number) {
+  function handleRecordingDone(blob: Blob, duration: number, mimeType: string) {
     if (phase.step === 'recording') {
-      setPhase({ step: 'review', questionIndex: phase.questionIndex, blob, duration });
+      setPhase({ step: 'review', questionIndex: phase.questionIndex, blob, duration, mimeType });
     } else if (phase.step === 'free-recording') {
-      setPhase({ step: 'free-review', blob, duration });
+      setPhase({ step: 'free-review', blob, duration, mimeType });
     }
   }
 
@@ -109,9 +109,13 @@ export function TodayScreen() {
     duration: number,
     questionId: string,
     questionText: string,
+    mimeType: string,
     emotionTag?: Recording['emotionTag'],
     parentNote?: string
   ): Promise<Recording> {
+    const ext = mimeType.includes('mp4') ? 'mp4' : 'webm';
+    const contentType = mimeType.includes('mp4') ? 'audio/mp4' : 'audio/webm';
+
     const recording: Recording = {
       id: generateId(),
       sessionId,
@@ -119,6 +123,7 @@ export function TodayScreen() {
       questionId,
       questionText,
       audioBlob: blob,
+      mimeType,
       durationSeconds: duration,
       emotionTag,
       parentNote,
@@ -143,10 +148,10 @@ export function TodayScreen() {
         // Blob storage can fail on mobile Safari — upload directly to cloud
         let audioUrl: string | undefined;
         if (state.user) {
-          const path = `${state.user.id}/${recording.id}.webm`;
+          const path = `${state.user.id}/${recording.id}.${ext}`;
           const { error } = await supabase.storage
             .from('recordings')
-            .upload(path, blob, { contentType: 'audio/webm', upsert: true });
+            .upload(path, blob, { contentType, upsert: true });
           if (!error) audioUrl = path;
         }
         await saveRecording({ ...recording, audioBlob: undefined, audioUrl });
@@ -192,11 +197,11 @@ export function TodayScreen() {
     if (phase.step !== 'review') return;
     if (!activeChild) return;
 
-    const { questionIndex } = phase;
+    const { questionIndex, mimeType } = phase;
     const question = todayQuestions[questionIndex];
 
     const recording = await saveRecordingEntry(
-      blob, duration, question.id, question.text, emotionTag, parentNote
+      blob, duration, question.id, question.text, mimeType, emotionTag, parentNote
     );
 
     const newRecordings = [...collectedRecordings, recording];
@@ -229,7 +234,7 @@ export function TodayScreen() {
     if (!activeChild) return;
 
     const recording = await saveRecordingEntry(
-      blob, duration, `free-${generateId()}`, 'Custom audio', emotionTag, parentNote
+      blob, duration, `free-${generateId()}`, 'Custom audio', phase.mimeType, emotionTag, parentNote
     );
 
     const newRecordings = [...collectedRecordings, recording];

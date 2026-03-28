@@ -19,6 +19,7 @@ export function useRecording(maxSeconds = 60) {
   const [recordingState, setRecordingState] = useState<RecordingState>('idle');
   const [elapsedSeconds, setElapsedSeconds] = useState(0);
   const [audioBlob, setAudioBlob] = useState<Blob | null>(null);
+  const [mimeType, setMimeType] = useState<string>('');
   const [stream, setStream] = useState<MediaStream | null>(null);
   const [error, setError] = useState<string | null>(null);
 
@@ -56,8 +57,9 @@ export function useRecording(maxSeconds = 60) {
       streamRef.current = mediaStream; // ref for cleanup
       setStream(mediaStream);          // state for waveform hook
 
-      const mimeType = getBestMimeType();
-      const recorder = new MediaRecorder(mediaStream, mimeType ? { mimeType } : undefined);
+      const detectedMime = getBestMimeType();
+      setMimeType(detectedMime || 'audio/webm');
+      const recorder = new MediaRecorder(mediaStream, detectedMime ? { mimeType: detectedMime } : undefined);
       mediaRecorderRef.current = recorder;
 
       recorder.ondataavailable = (e) => {
@@ -66,7 +68,7 @@ export function useRecording(maxSeconds = 60) {
 
       recorder.onstop = () => {
         const blob = new Blob(chunksRef.current, {
-          type: mimeType || 'audio/webm',
+          type: detectedMime || 'audio/webm',
         });
         setAudioBlob(blob);
         setRecordingState('stopped');
@@ -135,6 +137,7 @@ export function useRecording(maxSeconds = 60) {
     elapsedSeconds,
     maxSeconds,
     audioBlob,
+    mimeType,
     stream,
     error,
     startRecording,

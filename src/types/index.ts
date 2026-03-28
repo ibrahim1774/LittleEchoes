@@ -63,6 +63,7 @@ export interface Recording {
   questionText: string; // snapshot at recording time
   audioBlob?: Blob; // present for local recordings
   audioUrl?: string; // Supabase Storage path for cloud recordings
+  mimeType?: string; // e.g. 'audio/webm;codecs=opus' or 'audio/mp4'
   durationSeconds: number;
   transcription?: string;
   emotionTag?: EmotionTag;

@@ -9,7 +9,7 @@ interface Props {
   questionIndex: number;
   totalQuestions: number;
   childName: string;
-  onDone: (blob: Blob, duration: number) => void;
+  onDone: (blob: Blob, duration: number, mimeType: string) => void;
   isFreeRecording?: boolean;
 }
 
@@ -39,7 +39,7 @@ export function RecordingView({
   onDone,
   isFreeRecording,
 }: Props) {
-  const { recordingState, elapsedSeconds, audioBlob, stream, error, startRecording, stopRecording } =
+  const { recordingState, elapsedSeconds, audioBlob, mimeType, stream, error, startRecording, stopRecording } =
     useRecording(MAX_SECONDS);
 
   const barHeights = useAudioWaveform(stream, recordingState === 'recording');
@@ -55,9 +55,9 @@ export function RecordingView({
   // When recording stops, send blob back
   useEffect(() => {
     if (recordingState === 'stopped' && audioBlob) {
-      onDone(audioBlob, elapsedSeconds);
+      onDone(audioBlob, elapsedSeconds, mimeType);
     }
-  }, [recordingState, audioBlob, elapsedSeconds, onDone]);
+  }, [recordingState, audioBlob, elapsedSeconds, mimeType, onDone]);
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-echo-cream to-white dark:from-echo-dark-bg dark:to-echo-dark-card flex flex-col items-center px-6 pt-8 pb-28 relative overflow-hidden">
