@@ -419,7 +419,8 @@ export function Memories() {
   const todayStr = toDateStr(now.getFullYear(), now.getMonth(), now.getDate());
 
   // Growth montage computation
-  const growthMontage = (() => {
+  type MontageEntry = { rec: Recording; windowStart: Date; windowEnd: Date; windowRecCount: number };
+  const growthMontage: MontageEntry[] = (() => {
     const allRecs = groups.flatMap((g) => g.recordings).sort(
       (a, b) => a.createdAt.localeCompare(b.createdAt)
     );
@@ -442,7 +443,7 @@ export function Memories() {
     const totalDays = Math.ceil((endDate.getTime() - startDate.getTime()) / msPerDay) + 1;
     const windowCount = Math.max(1, Math.ceil(totalDays / growthInterval));
 
-    const montage: Recording[] = [];
+    const montage: MontageEntry[] = [];
     for (let w = 0; w < windowCount; w++) {
       const windowStart = new Date(startDate.getTime() + w * growthInterval * msPerDay);
       const windowEnd = new Date(windowStart.getTime() + growthInterval * msPerDay);
@@ -453,7 +454,12 @@ export function Memories() {
       if (windowRecs.length > 0) {
         // Pick using child ID + window index + shuffle seed
         const seed = (activeChild?.id ?? '').length + w + shuffleSeed * 7;
-        montage.push(windowRecs[seed % windowRecs.length]);
+        montage.push({
+          rec: windowRecs[seed % windowRecs.length],
+          windowStart,
+          windowEnd,
+          windowRecCount: windowRecs.length,
+        });
       }
     }
     return montage;
@@ -757,10 +763,10 @@ export function Memories() {
             <p className="font-nunito font-bold text-xs text-echo-gray uppercase tracking-wider mb-2">Interval</p>
             <div className="flex gap-2">
               {([
-                { days: 3, label: '3 days' },
                 { days: 7, label: 'Weekly' },
-                { days: 14, label: 'Bi-weekly' },
                 { days: 30, label: 'Monthly' },
+                { days: 182, label: '6 Months' },
+                { days: 365, label: 'Yearly' },
               ]).map((opt) => (
                 <button
                   key={opt.days}
@@ -842,12 +848,14 @@ export function Memories() {
                 <div className="absolute left-4 top-0 bottom-0 w-0.5 bg-echo-light-gray dark:bg-white/10" />
 
                 <div className="space-y-3">
-                  {growthMontage.map((rec, i) => {
+                  {growthMontage.map((entry, i) => {
+                    const { rec, windowStart, windowEnd, windowRecCount } = entry;
                     const isActive = playAllIndex === i;
                     const recDate = new Date(rec.createdAt);
                     const dateLabel = recDate.toLocaleDateString('en-US', {
                       month: 'short', day: 'numeric', year: 'numeric',
                     });
+                    const windowLabel = `${windowStart.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} – ${windowEnd.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}`;
 
                     return (
                       <div
@@ -870,6 +878,10 @@ export function Memories() {
                             isActive ? 'ring-2 ring-echo-coral' : ''
                           }`}
                         >
+                          {/* Window range label */}
+                          <p className="font-inter text-[10px] text-echo-coral font-semibold uppercase tracking-wider mb-1">
+                            {windowLabel} · {windowRecCount} recording{windowRecCount !== 1 ? 's' : ''} in window
+                          </p>
                           <div className="flex items-center justify-between mb-1">
                             <p className="font-inter text-xs text-echo-gray">{dateLabel}</p>
                             <span className="font-inter text-xs bg-echo-sky/15 text-echo-sky px-2 py-0.5 rounded-full">
