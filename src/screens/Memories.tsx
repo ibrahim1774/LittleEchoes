@@ -55,7 +55,7 @@ function toDateStr(year: number, month: number, day: number): string {
   return `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
 }
 
-function AudioPlayer({ blob, audioUrl, fallbackDuration }: { blob?: Blob; audioUrl?: string; fallbackDuration?: number }) {
+function AudioPlayer({ blob, audioUrl, fallbackDuration, userId, recordingId }: { blob?: Blob; audioUrl?: string; fallbackDuration?: number; userId?: string; recordingId: string }) {
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const urlRef = useRef<string | null>(null);
   const [isPlaying, setIsPlaying] = useState(false);
@@ -111,11 +111,20 @@ function AudioPlayer({ blob, audioUrl, fallbackDuration }: { blob?: Blob; audioU
       return;
     }
 
-    // Need to download from cloud first
-    if (!audioUrl) { setAudioError(true); return; }
+    // Need to download from cloud first — try audioUrl, then fallback path
+    const pathsToTry = [
+      audioUrl,
+      userId ? `${userId}/${recordingId}.webm` : null,
+    ].filter((p): p is string => !!p);
+
+    if (pathsToTry.length === 0) { setAudioError(true); return; }
 
     setLoadingAudio(true);
-    const downloaded = await downloadAudioFromCloud(audioUrl);
+    let downloaded: Blob | null = null;
+    for (const path of pathsToTry) {
+      downloaded = await downloadAudioFromCloud(path);
+      if (downloaded) break;
+    }
     setLoadingAudio(false);
 
     if (!downloaded) { setAudioError(true); return; }
@@ -215,12 +224,14 @@ function RecordingCard({
   onToggle,
   childName,
   onDelete,
+  userId,
 }: {
   rec: Recording;
   isOpen: boolean;
   onToggle: () => void;
   childName: string;
   onDelete: (id: string) => void;
+  userId?: string;
 }) {
   const catKey = rec.questionId.split('-')[0];
   const catColor = CATEGORY_COLORS[catKey] ?? '#8E8E93';
@@ -250,7 +261,7 @@ function RecordingCard({
 
       {isOpen && (
         <div className="px-4 pb-4 pt-0 border-t border-echo-light-gray dark:border-white/10">
-          <AudioPlayer blob={rec.audioBlob} audioUrl={rec.audioUrl} fallbackDuration={rec.durationSeconds} />
+          <AudioPlayer blob={rec.audioBlob} audioUrl={rec.audioUrl} fallbackDuration={rec.durationSeconds} userId={userId} recordingId={rec.id} />
           <div className="mt-2 flex items-center gap-4">
             <button
               onClick={() => void downloadRecording(rec, childName)}
@@ -491,6 +502,7 @@ export function Memories() {
                       onToggle={() => toggleExpanded(rec.id)}
                       childName={activeChild.name}
                       onDelete={handleDeleteRecording}
+                      userId={state.user?.id}
                     />
                   ))}
                 </div>
@@ -618,6 +630,7 @@ export function Memories() {
                       onToggle={() => toggleExpanded(rec.id)}
                       childName={activeChild.name}
                       onDelete={handleDeleteRecording}
+                      userId={state.user?.id}
                     />
                   ))}
                 </div>

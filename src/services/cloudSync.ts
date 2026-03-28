@@ -123,6 +123,9 @@ export async function loadFromCloud(user: AuthUser): Promise<void> {
             id: row.id,
             ...meta,
           });
+        } else if (meta.audioUrl && !existing.audioUrl) {
+          // Cloud has audioUrl but local doesn't — update it
+          await db.recordings.update(row.id, { audioUrl: meta.audioUrl });
         }
       }
     }
@@ -174,9 +177,14 @@ export async function downloadAudioFromCloud(audioUrl: string): Promise<Blob | n
     const { data, error } = await supabase.storage
       .from(STORAGE_BUCKET)
       .download(audioUrl);
-    if (error || !data) return null;
+    if (error) {
+      console.error('[downloadAudio] Failed:', audioUrl, error.message);
+      return null;
+    }
+    if (!data) return null;
     return data;
-  } catch {
+  } catch (err) {
+    console.error('[downloadAudio] Exception:', audioUrl, err);
     return null;
   }
 }
