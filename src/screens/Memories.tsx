@@ -98,6 +98,8 @@ function AudioPlayer({ blob, audioUrl, fallbackDuration, userId, recordingId, mi
 
   // Handle play — downloads from cloud on first tap (keeps iOS user-gesture chain intact)
   async function handlePlay() {
+    console.log('[AudioPlayer] handlePlay', { blob: !!blob, audioUrl, userId, recordingId, audioRefExists: !!audioRef.current });
+
     if (isPlaying) {
       audioRef.current?.pause();
       setIsPlaying(false);
@@ -119,17 +121,21 @@ function AudioPlayer({ blob, audioUrl, fallbackDuration, userId, recordingId, mi
       userId ? `${userId}/${recordingId}.mp4` : null,
     ].filter((p): p is string => !!p);
 
-    if (pathsToTry.length === 0) { setAudioError(true); return; }
+    console.log('[AudioPlayer] pathsToTry', pathsToTry);
+
+    if (pathsToTry.length === 0) { console.log('[AudioPlayer] No paths to try!'); setAudioError(true); return; }
 
     setLoadingAudio(true);
     let downloaded: Blob | null = null;
     for (const path of pathsToTry) {
+      console.log('[AudioPlayer] Trying path:', path);
       downloaded = await downloadAudioFromCloud(path);
+      console.log('[AudioPlayer] Result:', path, downloaded ? `${downloaded.size} bytes` : 'null');
       if (downloaded) break;
     }
     setLoadingAudio(false);
 
-    if (!downloaded) { setAudioError(true); return; }
+    if (!downloaded) { console.log('[AudioPlayer] All paths failed'); setAudioError(true); return; }
 
     // Re-wrap blob with correct MIME type to help the browser pick the right decoder
     const typedBlob = mimeType && downloaded.type !== mimeType
