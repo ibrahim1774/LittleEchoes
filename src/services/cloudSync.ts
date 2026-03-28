@@ -40,6 +40,8 @@ export async function syncToCloud(user: AuthUser): Promise<void> {
             audioUrl = path;
             // Save the URL back to local IndexedDB so we don't re-upload
             await db.recordings.update(r.id, { audioUrl: path });
+          } else {
+            console.error(`[syncToCloud] Audio upload failed for ${r.id}:`, error.message);
           }
         }
 
@@ -75,8 +77,8 @@ export async function syncToCloud(user: AuthUser): Promise<void> {
       }));
       await supabase.from('sessions').upsert(sessionRows);
     }
-  } catch {
-    // Sync is best-effort — don't block the app
+  } catch (err) {
+    console.error('[syncToCloud] Sync failed:', err);
   }
 }
 
@@ -140,8 +142,8 @@ export async function loadFromCloud(user: AuthUser): Promise<void> {
         }
       }
     }
-  } catch {
-    // Best-effort
+  } catch (err) {
+    console.error('[loadFromCloud] Load failed:', err);
   }
 }
 

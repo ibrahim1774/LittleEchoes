@@ -64,52 +64,71 @@ function AudioPlayer({ blob, audioUrl, fallbackDuration }: { blob?: Blob; audioU
   const [duration, setDuration] = useState(fallbackDuration ?? 0);
   const [loadingAudio, setLoadingAudio] = useState(false);
   const [audioError, setAudioError] = useState(false);
+  // True when we have a cloud URL but haven't downloaded the blob yet
+  const needsDownload = !blob && !!audioUrl;
 
-  useEffect(() => {
-    let cancelled = false;
-
-    async function initAudio() {
-      let audioBlob = blob;
-
-      // If no local blob, download from Supabase Storage
-      if (!audioBlob && audioUrl) {
-        setLoadingAudio(true);
-        audioBlob = await downloadAudioFromCloud(audioUrl) ?? undefined;
-        setLoadingAudio(false);
-        if (cancelled) return;
-        if (!audioBlob) { setAudioError(true); return; }
+  function setupAudio(audioBlob: Blob) {
+    const url = URL.createObjectURL(audioBlob);
+    urlRef.current = url;
+    const audio = new Audio(url);
+    audioRef.current = audio;
+    audio.onloadedmetadata = () => {
+      if (audio.duration && isFinite(audio.duration) && audio.duration > 0) {
+        setDuration(audio.duration);
       }
+    };
+    audio.ontimeupdate = () => {
+      if (audio.duration) setProgress(audio.currentTime / audio.duration);
+      setCurrentTime(audio.currentTime);
+    };
+    audio.onended = () => { setIsPlaying(false); setProgress(0); setCurrentTime(0); };
+    return audio;
+  }
 
-      if (!audioBlob) { setAudioError(true); return; }
-
-      const url = URL.createObjectURL(audioBlob);
-      urlRef.current = url;
-      const audio = new Audio(url);
-      audioRef.current = audio;
-      audio.onloadedmetadata = () => {
-        if (audio.duration && isFinite(audio.duration) && audio.duration > 0) {
-          setDuration(audio.duration);
-        }
-      };
-      audio.ontimeupdate = () => {
-        if (audio.duration) setProgress(audio.currentTime / audio.duration);
-        setCurrentTime(audio.currentTime);
-      };
-      audio.onended = () => { setIsPlaying(false); setProgress(0); setCurrentTime(0); };
+  // Only init audio immediately if we have a local blob
+  useEffect(() => {
+    if (blob) {
+      setupAudio(blob);
     }
-
-    void initAudio();
     return () => {
-      cancelled = true;
       audioRef.current?.pause();
       if (urlRef.current) URL.revokeObjectURL(urlRef.current);
     };
-  }, [blob, audioUrl]);
+  }, [blob]);
 
-  function togglePlay() {
-    if (!audioRef.current) return;
-    if (isPlaying) { audioRef.current.pause(); setIsPlaying(false); }
-    else { void audioRef.current.play(); setIsPlaying(true); }
+  // Handle play — downloads from cloud on first tap (keeps iOS user-gesture chain intact)
+  async function handlePlay() {
+    if (isPlaying) {
+      audioRef.current?.pause();
+      setIsPlaying(false);
+      return;
+    }
+
+    // Already have audio ready — just play
+    if (audioRef.current) {
+      void audioRef.current.play();
+      setIsPlaying(true);
+      return;
+    }
+
+    // Need to download from cloud first
+    if (!audioUrl) { setAudioError(true); return; }
+
+    setLoadingAudio(true);
+    const downloaded = await downloadAudioFromCloud(audioUrl);
+    setLoadingAudio(false);
+
+    if (!downloaded) { setAudioError(true); return; }
+
+    const audio = setupAudio(downloaded);
+    // Play immediately — still within the user-gesture chain on most browsers
+    try {
+      await audio.play();
+      setIsPlaying(true);
+    } catch {
+      // If autoplay still blocked, user can tap again
+      setIsPlaying(false);
+    }
   }
 
   function handleProgressClick(e: React.MouseEvent<HTMLDivElement>) {
@@ -118,15 +137,6 @@ function AudioPlayer({ blob, audioUrl, fallbackDuration }: { blob?: Blob; audioU
     const ratio = (e.clientX - rect.left) / rect.width;
     audioRef.current.currentTime = ratio * duration;
     setProgress(ratio);
-  }
-
-  if (loadingAudio) {
-    return (
-      <div className="flex items-center gap-2 mt-2 py-2">
-        <div className="w-4 h-4 border-2 border-echo-sky border-t-transparent rounded-full animate-spin" />
-        <span className="font-inter text-xs text-echo-gray">Loading audio...</span>
-      </div>
-    );
   }
 
   if (audioError) {
@@ -138,11 +148,13 @@ function AudioPlayer({ blob, audioUrl, fallbackDuration }: { blob?: Blob; audioU
   return (
     <div className="flex items-center gap-3 mt-2">
       <button
-        onClick={togglePlay}
+        onClick={() => void handlePlay()}
         className="w-9 h-9 rounded-full bg-echo-sky flex items-center justify-center flex-shrink-0 active:scale-95 transition-transform"
-        aria-label={isPlaying ? 'Pause' : 'Play'}
+        aria-label={isPlaying ? 'Pause' : loadingAudio ? 'Loading' : 'Play'}
       >
-        {isPlaying
+        {loadingAudio
+          ? <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+          : isPlaying
           ? <svg width="16" height="16" viewBox="0 0 24 24" fill="white"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>
           : <svg width="16" height="16" viewBox="0 0 24 24" fill="white"><path d="M8 5v14l11-7z"/></svg>
         }
@@ -157,7 +169,10 @@ function AudioPlayer({ blob, audioUrl, fallbackDuration }: { blob?: Blob; audioU
         />
       </div>
       <span className="font-inter text-xs text-echo-gray text-right whitespace-nowrap">
-        {formatDuration(Math.round(currentTime))} / {formatDuration(Math.round(duration))}
+        {needsDownload && !audioRef.current
+          ? formatDuration(Math.round(duration))
+          : `${formatDuration(Math.round(currentTime))} / ${formatDuration(Math.round(duration))}`
+        }
       </span>
     </div>
   );
