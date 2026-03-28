@@ -434,8 +434,7 @@ export function Memories() {
         montage.push(windowRecs[seed % windowRecs.length]);
       }
     }
-    // Only include recordings that have playable audio
-    return montage.filter((r) => r.audioBlob || r.audioUrl);
+    return montage;
   })();
 
   function prevMonth() {
