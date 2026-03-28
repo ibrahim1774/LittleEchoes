@@ -320,12 +320,19 @@ export function Memories() {
   const [loading, setLoading] = useState(true);
   const [expanded, setExpanded] = useState<Set<string>>(new Set());
 
-  const [viewMode, setViewMode] = useState<'timeline' | 'calendar'>('timeline');
+  const [viewMode, setViewMode] = useState<'timeline' | 'calendar' | 'growth'>('timeline');
   const [activeCategory, setActiveCategory] = useState<string | null>(null);
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
   const recordingsRef = useRef<HTMLDivElement>(null);
   const now = new Date();
   const [calMonth, setCalMonth] = useState({ year: now.getFullYear(), month: now.getMonth() });
+
+  // Growth tab state
+  const [growthRange, setGrowthRange] = useState<'3m' | '6m' | '1y' | 'all'>('all');
+  const [growthInterval, setGrowthInterval] = useState<number>(7);
+  const [playAllIndex, setPlayAllIndex] = useState<number | null>(null);
+  const playAllAudioRef = useRef<HTMLAudioElement | null>(null);
+  const growthCardRefs = useRef<Map<number, HTMLDivElement>>(new Map());
 
   useEffect(() => {
     if (!activeChild) return;
@@ -389,6 +396,47 @@ export function Memories() {
   const calendarCells = buildCalendarGrid(calMonth.year, calMonth.month);
   const todayStr = toDateStr(now.getFullYear(), now.getMonth(), now.getDate());
 
+  // Growth montage computation
+  const growthMontage = (() => {
+    const allRecs = groups.flatMap((g) => g.recordings).sort(
+      (a, b) => a.createdAt.localeCompare(b.createdAt)
+    );
+    if (allRecs.length === 0) return [];
+
+    // Filter by time range
+    const cutoff = new Date();
+    if (growthRange === '3m') cutoff.setMonth(cutoff.getMonth() - 3);
+    else if (growthRange === '6m') cutoff.setMonth(cutoff.getMonth() - 6);
+    else if (growthRange === '1y') cutoff.setFullYear(cutoff.getFullYear() - 1);
+    else cutoff.setFullYear(2000); // 'all'
+
+    const filtered = allRecs.filter((r) => new Date(r.createdAt) >= cutoff);
+    if (filtered.length === 0) return [];
+
+    // Divide into interval windows and pick one per window
+    const startDate = new Date(filtered[0].createdAt);
+    const endDate = new Date(filtered[filtered.length - 1].createdAt);
+    const msPerDay = 86400000;
+    const totalDays = Math.ceil((endDate.getTime() - startDate.getTime()) / msPerDay) + 1;
+    const windowCount = Math.max(1, Math.ceil(totalDays / growthInterval));
+
+    const montage: Recording[] = [];
+    for (let w = 0; w < windowCount; w++) {
+      const windowStart = new Date(startDate.getTime() + w * growthInterval * msPerDay);
+      const windowEnd = new Date(windowStart.getTime() + growthInterval * msPerDay);
+      const windowRecs = filtered.filter((r) => {
+        const d = new Date(r.createdAt);
+        return d >= windowStart && d < windowEnd;
+      });
+      if (windowRecs.length > 0) {
+        // Deterministic "random" pick using child ID + window index
+        const seed = (activeChild?.id ?? '').length + w;
+        montage.push(windowRecs[seed % windowRecs.length]);
+      }
+    }
+    return montage;
+  })();
+
   function prevMonth() {
     setCalMonth((m) => m.month === 0 ? { year: m.year - 1, month: 11 } : { ...m, month: m.month - 1 });
     setSelectedDate(null);
@@ -430,22 +478,22 @@ export function Memories() {
       {/* View toggle */}
       <div className="px-4 mb-3">
         <div className="flex bg-white dark:bg-echo-dark-card rounded-full p-1 shadow-soft w-fit">
-          {(['timeline', 'calendar'] as const).map((mode) => (
+          {(['timeline', 'calendar', 'growth'] as const).map((mode) => (
             <button
               key={mode}
-              onClick={() => { setViewMode(mode); setSelectedDate(null); }}
-              className={`px-5 py-1.5 rounded-full font-nunito font-bold text-sm transition-all ${
+              onClick={() => { setViewMode(mode); setSelectedDate(null); setPlayAllIndex(null); }}
+              className={`px-4 py-1.5 rounded-full font-nunito font-bold text-sm transition-all ${
                 viewMode === mode ? 'bg-echo-coral text-white shadow-sm' : 'text-echo-gray'
               }`}
             >
-              {mode === 'timeline' ? '📋 Timeline' : '📅 Calendar'}
+              {mode === 'timeline' ? '📋 Timeline' : mode === 'calendar' ? '📅 Calendar' : '🌱 Growth'}
             </button>
           ))}
         </div>
       </div>
 
-      {/* Category filter chips */}
-      <div className="px-4 mb-4">
+      {/* Category filter chips (hidden in growth view) */}
+      {viewMode !== 'growth' && <div className="px-4 mb-4">
         <div className="flex gap-2 overflow-x-auto pb-1" style={{ scrollbarWidth: 'none' }}>
           {CATEGORY_CHIPS.map((chip) => {
             const isActive = activeCategory === chip.key;
@@ -467,7 +515,7 @@ export function Memories() {
             );
           })}
         </div>
-      </div>
+      </div>}
 
       {loading ? (
         <div className="flex items-center justify-center py-20">
@@ -519,7 +567,7 @@ export function Memories() {
           )}
         </div>
 
-      ) : (
+      ) : viewMode === 'calendar' ? (
 
         /* ── CALENDAR VIEW ── */
         <div className="px-4">
@@ -653,7 +701,167 @@ export function Memories() {
             </div>
           )}
         </div>
-      )}
+      ) : viewMode === 'growth' ? (
+
+        /* ── GROWTH VIEW ── */
+        <div className="px-4">
+          {/* Time range chips */}
+          <div className="mb-3">
+            <p className="font-nunito font-bold text-xs text-echo-gray uppercase tracking-wider mb-2">Time Range</p>
+            <div className="flex gap-2">
+              {([
+                { key: '3m' as const, label: '3 months' },
+                { key: '6m' as const, label: '6 months' },
+                { key: '1y' as const, label: '1 year' },
+                { key: 'all' as const, label: 'All time' },
+              ]).map((opt) => (
+                <button
+                  key={opt.key}
+                  onClick={() => { setGrowthRange(opt.key); setPlayAllIndex(null); }}
+                  className={`px-3 py-1.5 rounded-full font-nunito font-semibold text-xs transition-all active:scale-95 ${
+                    growthRange === opt.key
+                      ? 'bg-echo-coral text-white shadow-sm'
+                      : 'bg-white dark:bg-echo-dark-card text-echo-gray shadow-soft'
+                  }`}
+                >
+                  {opt.label}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Interval chips */}
+          <div className="mb-4">
+            <p className="font-nunito font-bold text-xs text-echo-gray uppercase tracking-wider mb-2">Interval</p>
+            <div className="flex gap-2">
+              {([
+                { days: 3, label: '3 days' },
+                { days: 7, label: 'Weekly' },
+                { days: 14, label: 'Bi-weekly' },
+                { days: 30, label: 'Monthly' },
+              ]).map((opt) => (
+                <button
+                  key={opt.days}
+                  onClick={() => { setGrowthInterval(opt.days); setPlayAllIndex(null); }}
+                  className={`px-3 py-1.5 rounded-full font-nunito font-semibold text-xs transition-all active:scale-95 ${
+                    growthInterval === opt.days
+                      ? 'bg-echo-sky text-white shadow-sm'
+                      : 'bg-white dark:bg-echo-dark-card text-echo-gray shadow-soft'
+                  }`}
+                >
+                  {opt.label}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {growthMontage.length === 0 ? (
+            <div className="flex flex-col items-center py-12 gap-3">
+              <span className="text-4xl">🌱</span>
+              <p className="font-nunito text-echo-gray text-sm text-center px-4">
+                No echoes in this time range yet. Keep recording!
+              </p>
+            </div>
+          ) : (
+            <>
+              {/* Header + Play All */}
+              <div className="flex items-center justify-between mb-4">
+                <p className="font-nunito font-bold text-sm text-echo-charcoal dark:text-white">
+                  {growthMontage.length} echo{growthMontage.length !== 1 ? 'es' : ''} selected
+                </p>
+                <button
+                  onClick={() => {
+                    if (playAllIndex !== null) {
+                      playAllAudioRef.current?.pause();
+                      setPlayAllIndex(null);
+                    } else {
+                      setPlayAllIndex(0);
+                    }
+                  }}
+                  className={`flex items-center gap-1.5 px-4 py-2 rounded-full font-nunito font-bold text-xs transition-all active:scale-95 ${
+                    playAllIndex !== null
+                      ? 'bg-echo-charcoal text-white'
+                      : 'bg-echo-coral text-white shadow-coral'
+                  }`}
+                >
+                  {playAllIndex !== null ? (
+                    <>
+                      <svg width="12" height="12" viewBox="0 0 24 24" fill="white"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>
+                      Stop ({playAllIndex + 1}/{growthMontage.length})
+                    </>
+                  ) : (
+                    <>
+                      <svg width="12" height="12" viewBox="0 0 24 24" fill="white"><path d="M8 5v14l11-7z"/></svg>
+                      Play All
+                    </>
+                  )}
+                </button>
+              </div>
+
+              {/* Timeline cards */}
+              <div className="relative">
+                {/* Connecting line */}
+                <div className="absolute left-4 top-0 bottom-0 w-0.5 bg-echo-light-gray dark:bg-white/10" />
+
+                <div className="space-y-3">
+                  {growthMontage.map((rec, i) => {
+                    const isActive = playAllIndex === i;
+                    const recDate = new Date(rec.createdAt);
+                    const dateLabel = recDate.toLocaleDateString('en-US', {
+                      month: 'short', day: 'numeric', year: 'numeric',
+                    });
+
+                    return (
+                      <div
+                        key={rec.id}
+                        ref={(el) => { if (el) growthCardRefs.current.set(i, el); }}
+                        className="relative pl-10 animate-fade-in"
+                        style={{ animationDelay: `${i * 0.05}s` }}
+                      >
+                        {/* Timeline dot */}
+                        <div
+                          className={`absolute left-2.5 top-4 w-3 h-3 rounded-full border-2 transition-all ${
+                            isActive
+                              ? 'bg-echo-coral border-echo-coral scale-125'
+                              : 'bg-white dark:bg-echo-dark-card border-echo-light-gray dark:border-white/20'
+                          }`}
+                        />
+
+                        <div
+                          className={`bg-white dark:bg-echo-dark-card rounded-2xl p-4 shadow-soft transition-all ${
+                            isActive ? 'ring-2 ring-echo-coral' : ''
+                          }`}
+                        >
+                          <div className="flex items-center justify-between mb-1">
+                            <p className="font-inter text-xs text-echo-gray">{dateLabel}</p>
+                            <span className="font-inter text-xs bg-echo-sky/15 text-echo-sky px-2 py-0.5 rounded-full">
+                              {rec.durationSeconds ? formatDuration(rec.durationSeconds) : '—'}
+                            </span>
+                          </div>
+                          <p className="font-nunito font-semibold text-sm text-echo-charcoal dark:text-white leading-snug mb-2">
+                            {rec.questionText === 'Free recording' || rec.questionText === 'Custom audio'
+                              ? 'Custom audio'
+                              : rec.questionText}
+                          </p>
+                          <AudioPlayer
+                            blob={rec.audioBlob}
+                            audioUrl={rec.audioUrl}
+                            fallbackDuration={rec.durationSeconds}
+                            userId={state.user?.id}
+                            recordingId={rec.id}
+                            mimeType={rec.mimeType}
+                          />
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            </>
+          )}
+        </div>
+
+      ) : null}
     </div>
   );
 }
