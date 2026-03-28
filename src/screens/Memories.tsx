@@ -1,7 +1,7 @@
 import { useEffect, useState, useRef } from 'react';
 import { useApp } from '@/context/AppContext';
 import { getRecordingsByChild, getSessionsByChild, deleteRecording } from '@/services/storage';
-import { downloadAudioFromCloud, deleteRecordingFromCloud } from '@/services/cloudSync';
+import { downloadAudioFromCloud, deleteRecordingFromCloud, syncToCloud } from '@/services/cloudSync';
 import { EmptyMemoriesIllustration } from '@/components/illustrations/EmptyMemoriesIllustration';
 import { CATEGORY_COLORS, CATEGORY_LABELS } from '@/data/questions';
 import type { Recording, RecordingSession } from '@/types';
@@ -342,6 +342,20 @@ export function Memories() {
 
   useEffect(() => {
     if (!activeChild) return;
+
+    function buildGroups(sessions: RecordingSession[], recordings: Recording[]): GroupedSession[] {
+      const recordingMap = new Map<string, Recording[]>();
+      for (const rec of recordings) {
+        const arr = recordingMap.get(rec.sessionId) ?? [];
+        arr.push(rec);
+        recordingMap.set(rec.sessionId, arr);
+      }
+      return sessions
+        .filter((s) => (recordingMap.get(s.id) ?? []).length > 0)
+        .map((s) => ({ session: s, recordings: recordingMap.get(s.id) ?? [] }))
+        .sort((a, b) => b.session.date.localeCompare(a.session.date));
+    }
+
     async function load() {
       if (!activeChild) return;
       setLoading(true);
@@ -349,21 +363,22 @@ export function Memories() {
         getSessionsByChild(activeChild.id),
         getRecordingsByChild(activeChild.id),
       ]);
-      const recordingMap = new Map<string, Recording[]>();
-      for (const rec of recordings) {
-        const arr = recordingMap.get(rec.sessionId) ?? [];
-        arr.push(rec);
-        recordingMap.set(rec.sessionId, arr);
-      }
-      const grouped: GroupedSession[] = sessions
-        .filter((s) => (recordingMap.get(s.id) ?? []).length > 0)
-        .map((s) => ({ session: s, recordings: recordingMap.get(s.id) ?? [] }))
-        .sort((a, b) => b.session.date.localeCompare(a.session.date));
-      setGroups(grouped);
+      setGroups(buildGroups(sessions, recordings));
       setLoading(false);
+
+      // Sync any recordings with local blobs but no audioUrl to Supabase Storage
+      if (state.user) {
+        await syncToCloud(state.user);
+        // Reload to pick up newly-set audioUrls
+        const [freshSessions, freshRecordings] = await Promise.all([
+          getSessionsByChild(activeChild.id),
+          getRecordingsByChild(activeChild.id),
+        ]);
+        setGroups(buildGroups(freshSessions, freshRecordings));
+      }
     }
     void load();
-  }, [activeChild]);
+  }, [activeChild, state.user]);
 
   function toggleExpanded(recId: string) {
     setExpanded((prev) => {
