@@ -142,20 +142,26 @@ export function TodayScreen() {
       await saveSession(session);
       dispatch({ type: 'SET_TODAY_SESSION', payload: session });
 
+      // Upload audio to Supabase Storage immediately (don't defer to syncToCloud)
+      let audioUrl: string | undefined;
+      if (state.user) {
+        const path = `${state.user.id}/${recording.id}.${ext}`;
+        const { error } = await supabase.storage
+          .from('recordings')
+          .upload(path, blob, { contentType, upsert: true });
+        if (!error) {
+          audioUrl = path;
+          recording.audioUrl = path;
+        } else {
+          console.error('[saveRecording] Storage upload failed:', error.message);
+        }
+      }
+
       try {
         await saveRecording(recording);
       } catch {
-        // Blob storage can fail on mobile Safari — upload directly to cloud
-        let audioUrl: string | undefined;
-        if (state.user) {
-          const path = `${state.user.id}/${recording.id}.${ext}`;
-          const { error } = await supabase.storage
-            .from('recordings')
-            .upload(path, blob, { contentType, upsert: true });
-          if (!error) audioUrl = path;
-        }
+        // Blob storage can fail on mobile Safari — save without blob but with audioUrl
         await saveRecording({ ...recording, audioBlob: undefined, audioUrl });
-        recording.audioUrl = audioUrl;
       }
 
       if (state.user) void syncToCloud(state.user);
