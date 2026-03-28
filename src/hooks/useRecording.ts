@@ -15,6 +15,61 @@ function getBestMimeType(): string {
   return '';
 }
 
+/**
+ * Convert any audio blob to WAV (PCM) format for universal playback.
+ * Decodes using AudioContext, downsamples to 16kHz mono, encodes as WAV.
+ */
+async function convertToWav(blob: Blob): Promise<Blob> {
+  const arrayBuffer = await blob.arrayBuffer();
+  const audioCtx = new (window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext)();
+  const decoded = await audioCtx.decodeAudioData(arrayBuffer);
+  void audioCtx.close();
+
+  // Downsample to 16kHz mono
+  const TARGET_RATE = 16000;
+  const srcData = decoded.getChannelData(0); // mono — take first channel
+  const ratio = decoded.sampleRate / TARGET_RATE;
+  const newLength = Math.floor(srcData.length / ratio);
+  const samples = new Int16Array(newLength);
+
+  for (let i = 0; i < newLength; i++) {
+    const srcIndex = Math.floor(i * ratio);
+    // Clamp float [-1,1] to int16
+    const s = Math.max(-1, Math.min(1, srcData[srcIndex]));
+    samples[i] = s < 0 ? s * 0x8000 : s * 0x7FFF;
+  }
+
+  // Build WAV file
+  const wavBuffer = new ArrayBuffer(44 + samples.length * 2);
+  const view = new DataView(wavBuffer);
+
+  function writeString(offset: number, str: string) {
+    for (let i = 0; i < str.length; i++) view.setUint8(offset + i, str.charCodeAt(i));
+  }
+
+  writeString(0, 'RIFF');
+  view.setUint32(4, 36 + samples.length * 2, true);
+  writeString(8, 'WAVE');
+  writeString(12, 'fmt ');
+  view.setUint32(16, 16, true); // chunk size
+  view.setUint16(20, 1, true);  // PCM format
+  view.setUint16(22, 1, true);  // mono
+  view.setUint32(24, TARGET_RATE, true);
+  view.setUint32(28, TARGET_RATE * 2, true); // byte rate
+  view.setUint16(32, 2, true);  // block align
+  view.setUint16(34, 16, true); // bits per sample
+  writeString(36, 'data');
+  view.setUint32(40, samples.length * 2, true);
+
+  // Write PCM samples
+  const offset = 44;
+  for (let i = 0; i < samples.length; i++) {
+    view.setInt16(offset + i * 2, samples[i], true);
+  }
+
+  return new Blob([wavBuffer], { type: 'audio/wav' });
+}
+
 export function useRecording(maxSeconds = 60) {
   const [recordingState, setRecordingState] = useState<RecordingState>('idle');
   const [elapsedSeconds, setElapsedSeconds] = useState(0);
@@ -67,12 +122,23 @@ export function useRecording(maxSeconds = 60) {
       };
 
       recorder.onstop = () => {
-        const blob = new Blob(chunksRef.current, {
+        const rawBlob = new Blob(chunksRef.current, {
           type: detectedMime || 'audio/webm',
         });
-        setAudioBlob(blob);
-        setRecordingState('stopped');
         mediaStream.getTracks().forEach((t) => t.stop());
+
+        // Convert to WAV for universal playback across all iOS versions
+        convertToWav(rawBlob)
+          .then((wavBlob) => {
+            setAudioBlob(wavBlob);
+            setMimeType('audio/wav');
+            setRecordingState('stopped');
+          })
+          .catch(() => {
+            // Fallback: use original blob if conversion fails
+            setAudioBlob(rawBlob);
+            setRecordingState('stopped');
+          });
       };
 
       recorder.start(100);

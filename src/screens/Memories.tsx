@@ -114,6 +114,7 @@ function AudioPlayer({ blob, audioUrl, fallbackDuration, userId, recordingId, mi
     // Need to download from cloud first — try audioUrl, then fallback paths with both extensions
     const pathsToTry = [
       audioUrl,
+      userId ? `${userId}/${recordingId}.wav` : null,
       userId ? `${userId}/${recordingId}.webm` : null,
       userId ? `${userId}/${recordingId}.mp4` : null,
     ].filter((p): p is string => !!p);
@@ -217,7 +218,8 @@ async function downloadRecording(rec: Recording, childName: string) {
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
   a.href = url;
-  a.download = `${childName}_${rec.createdAt.slice(0, 10)}_echo.webm`;
+  const ext = rec.mimeType?.includes('wav') ? 'wav' : rec.mimeType?.includes('mp4') ? 'mp4' : 'webm';
+  a.download = `${childName}_${rec.createdAt.slice(0, 10)}_echo.${ext}`;
   document.body.appendChild(a);
   a.click();
   document.body.removeChild(a);

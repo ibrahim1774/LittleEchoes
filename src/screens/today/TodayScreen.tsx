@@ -113,8 +113,8 @@ export function TodayScreen() {
     emotionTag?: Recording['emotionTag'],
     parentNote?: string
   ): Promise<Recording> {
-    const ext = mimeType.includes('mp4') ? 'mp4' : 'webm';
-    const contentType = mimeType.includes('mp4') ? 'audio/mp4' : 'audio/webm';
+    const ext = mimeType.includes('wav') ? 'wav' : mimeType.includes('mp4') ? 'mp4' : 'webm';
+    const contentType = mimeType.includes('wav') ? 'audio/wav' : mimeType.includes('mp4') ? 'audio/mp4' : 'audio/webm';
 
     const recording: Recording = {
       id: generateId(),

@@ -29,8 +29,8 @@ export async function syncToCloud(user: AuthUser): Promise<void> {
         // Upload audio blob to Supabase Storage if it exists and hasn't been uploaded yet
         let audioUrl = r.audioUrl;
         if (r.audioBlob && !audioUrl) {
-          const ext = r.mimeType?.includes('mp4') ? 'mp4' : 'webm';
-          const contentType = r.mimeType?.includes('mp4') ? 'audio/mp4' : 'audio/webm';
+          const ext = r.mimeType?.includes('wav') ? 'wav' : r.mimeType?.includes('mp4') ? 'mp4' : 'webm';
+          const contentType = r.mimeType?.includes('wav') ? 'audio/wav' : r.mimeType?.includes('mp4') ? 'audio/mp4' : 'audio/webm';
           const path = `${user.id}/${r.id}.${ext}`;
           const { error } = await supabase.storage
             .from(STORAGE_BUCKET)
