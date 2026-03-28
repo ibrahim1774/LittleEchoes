@@ -147,6 +147,7 @@ const SLIDES: Slide[] = [
     steps: [
       { src: '/IMG_3453.jpg', label: 'Record their answers' },
       { src: '/IMG_3455.jpg', label: 'Browse by date' },
+      { src: '/IMG_3457.png', label: 'Watch their voice grow' },
     ],
   },
   {
@@ -156,7 +157,7 @@ const SLIDES: Slide[] = [
     benefits: [
       { icon: '⏱️', title: '5 minutes a day', desc: 'No prep, no pressure — just press record', color: '#FF6B6B' },
       { icon: '🎙️', title: 'Their voice, preserved', desc: 'Before it changes forever', color: '#6BC5F8' },
-      { icon: '🌱', title: 'Watch them grow', desc: 'See answers evolve year after year', color: '#A8E06C' },
+      { icon: '🌱', title: 'Voice growth timeline', desc: 'Hear how they change week by week, month by month', color: '#A8E06C' },
       { icon: '🔒', title: '100% private', desc: "Your family's memories, nobody else's", color: '#C4A1FF' },
     ],
   },

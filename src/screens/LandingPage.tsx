@@ -211,6 +211,16 @@ export function LandingPage() {
             </div>
           </div>
         </div>
+
+        {/* Step 4 — Growth timeline */}
+        <div className="px-5 text-center mt-10">
+          <span className="font-extrabold text-3xl text-echo-coral">4</span>
+          <p className="font-bold text-base text-echo-charcoal mt-1">Watch them grow</p>
+          <p className="text-sm text-echo-gray mt-1 mb-6">Pick any time range. Hear their voice change week by week, month by month.</p>
+          <div className="flex justify-center">
+            <PhoneMockup src="/IMG_3457.png" alt="Voice growth timeline showing recordings over time" width={220} />
+          </div>
+        </div>
       </section>
 
       {/* ── S5: Feature Grid ──────────────────────────── */}
@@ -221,7 +231,7 @@ export function LandingPage() {
             { icon: '💬', label: 'Daily questions' },
             { icon: '🎙️', label: 'Free-form recording' },
             { icon: '☁️', label: 'Cloud saved' },
-            { icon: '🌱', label: 'Hear the growth' },
+            { icon: '🌱', label: 'Voice growth timeline' },
             { icon: '📥', label: 'Download anytime' },
             { icon: '🔒', label: 'Private & secure' },
           ].map((f, i) => (

@@ -21,6 +21,7 @@ const EMOTION_OPTIONS = [
 const FEATURES = [
   { src: '/IMG_3452.jpg', title: 'Record in seconds', desc: 'One tap to capture their voice. We handle the rest.' },
   { src: '/IMG_3454.jpg', title: 'Your voice time capsule', desc: 'Organized by age, preserved forever.' },
+  { src: '/IMG_3457.png', title: 'Watch them grow', desc: 'Hear their voice change week by week, month by month.' },
   { src: '/IMG_3455.jpg', title: 'Share or keep forever', desc: 'Play it back years from now. Share with grandparents anytime.' },
 ];
 
