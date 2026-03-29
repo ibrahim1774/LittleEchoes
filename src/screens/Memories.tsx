@@ -1,10 +1,10 @@
-import { useEffect, useState, useRef } from 'react';
+import { useEffect, useState, useRef, useMemo } from 'react';
 import { useApp } from '@/context/AppContext';
-import { getRecordingsByChild, getSessionsByChild, deleteRecording } from '@/services/storage';
-import { downloadAudioFromCloud, deleteRecordingFromCloud, syncToCloud } from '@/services/cloudSync';
+import { getRecordingsByChild, getSessionsByChild, deleteRecording, getVideosByChild, deleteVideo } from '@/services/storage';
+import { downloadAudioFromCloud, deleteRecordingFromCloud, downloadVideoFromCloud, deleteVideoFromCloud, syncToCloud } from '@/services/cloudSync';
 import { EmptyMemoriesIllustration } from '@/components/illustrations/EmptyMemoriesIllustration';
 import { CATEGORY_COLORS, CATEGORY_LABELS } from '@/data/questions';
-import type { Recording, RecordingSession } from '@/types';
+import type { Recording, RecordingSession, VideoClip } from '@/types';
 
 function formatDate(isoDate: string): string {
   return new Date(isoDate + 'T00:00:00').toLocaleDateString('en-US', {
@@ -200,6 +200,87 @@ function AudioPlayer({ blob, audioUrl, fallbackDuration, userId, recordingId, mi
   );
 }
 
+function VideoPlayer({ blob, videoUrl, userId, videoId }: { blob?: Blob; videoUrl?: string; userId?: string; videoId: string }) {
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const urlRef = useRef<string | null>(null);
+  const [objectUrl, setObjectUrl] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(false);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    if (blob) {
+      const url = URL.createObjectURL(blob);
+      urlRef.current = url;
+      setObjectUrl(url);
+      return () => {
+        if (urlRef.current) URL.revokeObjectURL(urlRef.current);
+      };
+    }
+
+    async function init() {
+      const pathsToTry = [
+        videoUrl,
+        userId ? `${userId}/${videoId}.mp4` : null,
+        userId ? `${userId}/${videoId}.webm` : null,
+      ].filter((p): p is string => !!p);
+
+      if (pathsToTry.length === 0) { setError(true); return; }
+
+      setLoading(true);
+      let videoBlob: Blob | null = null;
+      for (const path of pathsToTry) {
+        videoBlob = await downloadVideoFromCloud(path);
+        if (videoBlob) break;
+      }
+      setLoading(false);
+
+      if (cancelled) return;
+      if (!videoBlob) { setError(true); return; }
+
+      const url = URL.createObjectURL(videoBlob);
+      urlRef.current = url;
+      setObjectUrl(url);
+    }
+
+    void init();
+    return () => {
+      cancelled = true;
+      if (urlRef.current) URL.revokeObjectURL(urlRef.current);
+    };
+  }, [blob, videoUrl]);
+
+  if (loading) {
+    return (
+      <div className="aspect-video bg-echo-light-gray dark:bg-echo-dark-card rounded-2xl flex items-center justify-center">
+        <div className="w-6 h-6 border-2 border-echo-coral border-t-transparent rounded-full animate-spin" />
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="aspect-video bg-echo-light-gray dark:bg-echo-dark-card rounded-2xl flex items-center justify-center">
+        <p className="font-inter text-xs text-echo-gray">Video not available</p>
+      </div>
+    );
+  }
+
+  if (!objectUrl) return null;
+
+  return (
+    <video
+      ref={videoRef}
+      src={objectUrl}
+      controls
+      playsInline
+      className="w-full rounded-2xl bg-black"
+      style={{ aspectRatio: '16/9' }}
+    />
+  );
+}
+
 interface GroupedSession {
   session: RecordingSession;
   recordings: Recording[];
@@ -230,6 +311,104 @@ async function downloadRecording(rec: Recording, childName: string) {
   a.click();
   document.body.removeChild(a);
   URL.revokeObjectURL(url);
+}
+
+async function downloadVideoClip(clip: VideoClip, childName: string) {
+  let blob = clip.videoBlob;
+  if (!blob && clip.videoUrl) {
+    blob = await downloadVideoFromCloud(clip.videoUrl) ?? undefined;
+  }
+  if (!blob) return;
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  const ext = clip.mimeType?.includes('mp4') ? 'mp4' : 'webm';
+  a.download = `${childName}_${clip.date}_video.${ext}`;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}
+
+function VideoCard({
+  clip,
+  isOpen,
+  onToggle,
+  childName,
+  onDelete,
+  userId,
+}: {
+  clip: VideoClip;
+  isOpen: boolean;
+  onToggle: () => void;
+  childName: string;
+  onDelete: (id: string) => void;
+  userId?: string;
+}) {
+  return (
+    <div className="bg-white dark:bg-echo-dark-card rounded-2xl shadow-soft overflow-hidden">
+      <button onClick={onToggle} className="w-full flex items-start gap-3 p-4 text-left">
+        <div className="w-6 h-6 flex-shrink-0 mt-0.5 flex items-center justify-center rounded-full bg-echo-sky/15">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#4A90D9" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <polygon points="23 7 16 12 23 17 23 7"/>
+            <rect x="1" y="5" width="15" height="14" rx="2" ry="2"/>
+          </svg>
+        </div>
+        <div className="flex-1 min-w-0">
+          <p className={`font-nunito font-semibold text-sm text-echo-charcoal dark:text-white leading-snug ${isOpen ? '' : 'line-clamp-2'}`}>
+            {clip.caption || 'Video clip'}
+          </p>
+          <p className="font-inter text-xs text-echo-gray mt-0.5">Video</p>
+        </div>
+        <div className="flex items-center gap-1.5 flex-shrink-0">
+          <span className="font-inter text-xs bg-echo-sky/15 text-echo-sky px-2 py-0.5 rounded-full">
+            {clip.durationSeconds ? formatDuration(clip.durationSeconds) : '—'}
+          </span>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"
+            className={`text-echo-gray transition-transform ${isOpen ? 'rotate-180' : ''}`}>
+            <path d="M6 9l6 6 6-6" strokeLinecap="round" strokeLinejoin="round"/>
+          </svg>
+        </div>
+      </button>
+
+      {isOpen && (
+        <div className="px-4 pb-4 pt-0 border-t border-echo-light-gray dark:border-white/10">
+          <div className="mt-3">
+            <VideoPlayer blob={clip.videoBlob} videoUrl={clip.videoUrl} userId={userId} videoId={clip.id} />
+          </div>
+          <div className="mt-2 flex items-center gap-4">
+            <button
+              onClick={() => void downloadVideoClip(clip, childName)}
+              className="flex items-center gap-1.5 text-echo-gray hover:text-echo-coral transition-colors active:scale-95"
+              aria-label="Download video"
+            >
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/>
+                <polyline points="7 10 12 15 17 10"/>
+                <line x1="12" y1="15" x2="12" y2="3"/>
+              </svg>
+              <span className="font-inter text-xs">Download</span>
+            </button>
+            <button
+              onClick={() => {
+                if (window.confirm('Delete this video? This cannot be undone.')) {
+                  onDelete(clip.id);
+                }
+              }}
+              className="flex items-center gap-1.5 text-echo-gray hover:text-red-500 transition-colors active:scale-95"
+              aria-label="Delete video"
+            >
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <polyline points="3 6 5 6 21 6"/>
+                <path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"/>
+              </svg>
+              <span className="font-inter text-xs">Delete</span>
+            </button>
+          </div>
+        </div>
+      )}
+    </div>
+  );
 }
 
 function RecordingCard({
@@ -326,6 +505,9 @@ export function Memories() {
   const [loading, setLoading] = useState(true);
   const [expanded, setExpanded] = useState<Set<string>>(new Set());
 
+  const [videos, setVideos] = useState<VideoClip[]>([]);
+  const [mediaType, setMediaType] = useState<'all' | 'audio' | 'video'>('all');
+
   const [viewMode, setViewMode] = useState<'timeline' | 'calendar' | 'growth'>('timeline');
   const [activeCategory, setActiveCategory] = useState<string | null>(null);
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
@@ -360,22 +542,26 @@ export function Memories() {
     async function load() {
       if (!activeChild) return;
       setLoading(true);
-      const [sessions, recordings] = await Promise.all([
+      const [sessions, recordings, childVideos] = await Promise.all([
         getSessionsByChild(activeChild.id),
         getRecordingsByChild(activeChild.id),
+        getVideosByChild(activeChild.id),
       ]);
       setGroups(buildGroups(sessions, recordings));
+      setVideos(childVideos);
       setLoading(false);
 
       // Sync any recordings with local blobs but no audioUrl to Supabase Storage
       if (state.user) {
         await syncToCloud(state.user);
-        // Reload to pick up newly-set audioUrls
-        const [freshSessions, freshRecordings] = await Promise.all([
+        // Reload to pick up newly-set audioUrls/videoUrls
+        const [freshSessions, freshRecordings, freshVideos] = await Promise.all([
           getSessionsByChild(activeChild.id),
           getRecordingsByChild(activeChild.id),
+          getVideosByChild(activeChild.id),
         ]);
         setGroups(buildGroups(freshSessions, freshRecordings));
+        setVideos(freshVideos);
       }
     }
     void load();
@@ -406,7 +592,48 @@ export function Memories() {
     }
   }
 
+  function handleDeleteVideo(videoId: string) {
+    const clip = videos.find((v) => v.id === videoId);
+    setVideos((prev) => prev.filter((v) => v.id !== videoId));
+    void deleteVideo(videoId);
+    if (state.user && clip) {
+      void deleteVideoFromCloud(state.user, videoId, clip.videoUrl);
+    }
+  }
+
+  // Unified timeline entries for interleaving audio sessions and video clips
+  type TimelineEntry =
+    | { type: 'session'; date: string; session: RecordingSession; recordings: Recording[] }
+    | { type: 'video'; date: string; clips: VideoClip[] };
+
+  const timelineEntries: TimelineEntry[] = useMemo(() => {
+    const entries: TimelineEntry[] = [];
+    if (mediaType !== 'video') {
+      for (const g of applyFilter(groups, activeCategory)) {
+        entries.push({ type: 'session', date: g.session.date, session: g.session, recordings: g.recordings });
+      }
+    }
+    if (mediaType !== 'audio') {
+      const videosByDateMap = new Map<string, VideoClip[]>();
+      for (const v of videos) {
+        const arr = videosByDateMap.get(v.date) ?? [];
+        arr.push(v);
+        videosByDateMap.set(v.date, arr);
+      }
+      for (const [date, clips] of videosByDateMap) {
+        entries.push({ type: 'video', date, clips });
+      }
+    }
+    entries.sort((a, b) => b.date.localeCompare(a.date));
+    return entries;
+  }, [groups, videos, mediaType, activeCategory]);
+
   const datesWithRecordings = new Set(groups.map((g) => g.session.date));
+  const datesWithVideos = new Set(videos.map((v) => v.date));
+  const datesWithContent = new Set([
+    ...(mediaType !== 'video' ? datesWithRecordings : []),
+    ...(mediaType !== 'audio' ? datesWithVideos : []),
+  ]);
 
   const recordingsByDate = new Map<string, Recording[]>();
   for (const g of groups) {
@@ -414,7 +641,6 @@ export function Memories() {
     recordingsByDate.set(g.session.date, [...existing, ...g.recordings]);
   }
 
-  const filteredGroups = applyFilter(groups, activeCategory);
   const calendarCells = buildCalendarGrid(calMonth.year, calMonth.month);
   const todayStr = toDateStr(now.getFullYear(), now.getMonth(), now.getDate());
 
@@ -475,12 +701,16 @@ export function Memories() {
     setSelectedDate(null);
   }
 
-  const selectedDayRecs: Recording[] = selectedDate
+  const selectedDayRecs: Recording[] = selectedDate && mediaType !== 'video'
     ? (() => {
         const recs = recordingsByDate.get(selectedDate) ?? [];
         if (!activeCategory) return recs;
         return recs.filter((r) => r.questionId.split('-')[0] === activeCategory);
       })()
+    : [];
+
+  const selectedDayVideos: VideoClip[] = selectedDate && mediaType !== 'audio'
+    ? videos.filter((v) => v.date === selectedDate)
     : [];
 
   if (!activeChild) {
@@ -520,8 +750,25 @@ export function Memories() {
         </div>
       </div>
 
-      {/* Category filter chips (hidden in growth view) */}
-      {viewMode !== 'growth' && <div className="px-4 mb-4">
+      {/* Media type toggle */}
+      <div className="px-4 mb-3">
+        <div className="flex bg-white dark:bg-echo-dark-card rounded-full p-1 shadow-soft w-fit">
+          {(['all', 'audio', 'video'] as const).map((type) => (
+            <button
+              key={type}
+              onClick={() => { setMediaType(type); if (type === 'video') setActiveCategory(null); }}
+              className={`px-4 py-1.5 rounded-full font-nunito font-bold text-sm transition-all ${
+                mediaType === type ? 'bg-echo-sky text-white shadow-sm' : 'text-echo-gray'
+              }`}
+            >
+              {type === 'all' ? '✨ All' : type === 'audio' ? '🎙️ Audio' : '🎬 Video'}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* Category filter chips (hidden in growth view and video-only mode) */}
+      {viewMode !== 'growth' && mediaType !== 'video' && <div className="px-4 mb-4">
         <div className="flex gap-2 overflow-x-auto pb-1" style={{ scrollbarWidth: 'none' }}>
           {CATEGORY_CHIPS.map((chip) => {
             const isActive = activeCategory === chip.key;
@@ -549,7 +796,7 @@ export function Memories() {
         <div className="flex items-center justify-center py-20">
           <div className="text-3xl animate-bounce">🎵</div>
         </div>
-      ) : groups.length === 0 ? (
+      ) : groups.length === 0 && videos.length === 0 ? (
         <div className="flex flex-col items-center justify-center py-16 px-8 gap-6">
           <EmptyMemoriesIllustration />
           <div className="text-center">
@@ -563,35 +810,61 @@ export function Memories() {
 
         /* ── TIMELINE VIEW ── */
         <div className="px-4 space-y-6">
-          {filteredGroups.length === 0 ? (
+          {timelineEntries.length === 0 ? (
             <div className="flex flex-col items-center py-12 gap-3">
               <span className="text-4xl">🔍</span>
-              <p className="font-nunito text-echo-gray text-sm text-center">No echoes in this category yet.</p>
+              <p className="font-nunito text-echo-gray text-sm text-center">
+                {mediaType === 'video' ? 'No video clips yet.' : mediaType === 'audio' ? 'No audio echoes in this category yet.' : 'No echoes in this category yet.'}
+              </p>
             </div>
           ) : (
-            filteredGroups.map(({ session, recordings }) => (
-              <div key={session.id}>
-                <div className="flex items-center gap-2 mb-3">
-                  <span className="text-xl">{activeChild.avatarEmoji}</span>
-                  <h2 className="font-nunito font-bold text-sm text-echo-charcoal dark:text-white">
-                    {formatDate(session.date)}
-                  </h2>
-                </div>
-                <div className="space-y-2">
-                  {recordings.map((rec) => (
-                    <RecordingCard
-                      key={rec.id}
-                      rec={rec}
-                      isOpen={expanded.has(rec.id)}
-                      onToggle={() => toggleExpanded(rec.id)}
-                      childName={activeChild.name}
-                      onDelete={handleDeleteRecording}
+            timelineEntries.map((entry) =>
+              entry.type === 'session' ? (
+                <div key={entry.session.id}>
+                  <div className="flex items-center gap-2 mb-3">
+                    <span className="text-xl">{activeChild.avatarEmoji}</span>
+                    <h2 className="font-nunito font-bold text-sm text-echo-charcoal dark:text-white">
+                      {formatDate(entry.date)}
+                    </h2>
+                  </div>
+                  <div className="space-y-2">
+                    {entry.recordings.map((rec) => (
+                      <RecordingCard
+                        key={rec.id}
+                        rec={rec}
+                        isOpen={expanded.has(rec.id)}
+                        onToggle={() => toggleExpanded(rec.id)}
+                        childName={activeChild.name}
+                        onDelete={handleDeleteRecording}
                       userId={state.user?.id}
                     />
                   ))}
+                  </div>
                 </div>
-              </div>
-            ))
+              ) : (
+                <div key={`video-${entry.date}`}>
+                  <div className="flex items-center gap-2 mb-3">
+                    <span className="text-xl">{activeChild.avatarEmoji}</span>
+                    <h2 className="font-nunito font-bold text-sm text-echo-charcoal dark:text-white">
+                      {formatDate(entry.date)}
+                    </h2>
+                  </div>
+                  <div className="space-y-2">
+                    {entry.clips.map((clip) => (
+                      <VideoCard
+                        key={clip.id}
+                        clip={clip}
+                        isOpen={expanded.has(clip.id)}
+                        onToggle={() => toggleExpanded(clip.id)}
+                        childName={activeChild.name}
+                        onDelete={handleDeleteVideo}
+                        userId={state.user?.id}
+                      />
+                    ))}
+                  </div>
+                </div>
+              )
+            )
           )}
         </div>
 
@@ -643,7 +916,7 @@ export function Memories() {
               {calendarCells.map((day, i) => {
                 if (day === null) return <div key={`blank-${i}`} />;
                 const dateStr = toDateStr(calMonth.year, calMonth.month, day);
-                const hasRec = datesWithRecordings.has(dateStr);
+                const hasRec = datesWithContent.has(dateStr);
                 const isSelected = selectedDate === dateStr;
                 const isToday = dateStr === todayStr;
 
@@ -688,7 +961,7 @@ export function Memories() {
             </div>
           </div>
 
-          {/* Selected day recordings */}
+          {/* Selected day recordings & videos */}
           {selectedDate ? (
             <div ref={recordingsRef}>
               <div className="flex items-center gap-2 mb-3">
@@ -697,7 +970,7 @@ export function Memories() {
                   {formatDate(selectedDate)}
                 </h3>
               </div>
-              {selectedDayRecs.length === 0 ? (
+              {selectedDayRecs.length === 0 && selectedDayVideos.length === 0 ? (
                 <div className="flex flex-col items-center py-8 gap-2">
                   <span className="text-3xl">🔍</span>
                   <p className="font-nunito text-echo-gray text-sm text-center">
@@ -717,6 +990,17 @@ export function Memories() {
                       userId={state.user?.id}
                     />
                   ))}
+                  {selectedDayVideos.map((clip) => (
+                    <VideoCard
+                      key={clip.id}
+                      clip={clip}
+                      isOpen={expanded.has(clip.id)}
+                      onToggle={() => toggleExpanded(clip.id)}
+                      childName={activeChild.name}
+                      onDelete={handleDeleteVideo}
+                      userId={state.user?.id}
+                    />
+                  ))}
                 </div>
               )}
             </div>
@@ -724,7 +1008,7 @@ export function Memories() {
             <div className="flex flex-col items-center py-10 gap-2">
               <span className="text-4xl">👆</span>
               <p className="font-nunito text-echo-gray text-sm text-center px-8">
-                Tap a highlighted day to hear that day's echoes
+                Tap a highlighted day to see that day's echoes
               </p>
             </div>
           )}
@@ -733,6 +1017,14 @@ export function Memories() {
 
         /* ── GROWTH VIEW ── */
         <div className="px-4">
+          {mediaType === 'video' ? (
+            <div className="flex flex-col items-center py-12 gap-3">
+              <span className="text-4xl">🎬</span>
+              <p className="font-nunito text-echo-gray text-sm text-center px-4">
+                Growth view shows audio recordings over time. Switch to Timeline or Calendar to view videos.
+              </p>
+            </div>
+          ) : (<>
           {/* Time range chips */}
           <div className="mb-3">
             <p className="font-nunito font-bold text-xs text-echo-gray uppercase tracking-wider mb-2">Time Range</p>
@@ -909,6 +1201,7 @@ export function Memories() {
               </div>
             </>
           )}
+          </>)}
         </div>
 
       ) : null}
