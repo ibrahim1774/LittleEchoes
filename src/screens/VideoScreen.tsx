@@ -19,6 +19,7 @@ function formatDuration(s: number): string {
 
 function VideoPlayer({ blob, videoUrl, userId, videoId }: { blob?: Blob; videoUrl?: string; userId?: string; videoId: string }) {
   const videoRef = useRef<HTMLVideoElement>(null);
+  const urlRef = useRef<string | null>(null);
   const [objectUrl, setObjectUrl] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(false);
@@ -26,36 +27,47 @@ function VideoPlayer({ blob, videoUrl, userId, videoId }: { blob?: Blob; videoUr
   useEffect(() => {
     let cancelled = false;
 
+    // If we have a local blob, create URL immediately (no async needed)
+    if (blob) {
+      const url = URL.createObjectURL(blob);
+      urlRef.current = url;
+      setObjectUrl(url);
+      return () => {
+        if (urlRef.current) URL.revokeObjectURL(urlRef.current);
+      };
+    }
+
+    // Otherwise try downloading from cloud
     async function init() {
-      let videoBlob = blob;
+      const pathsToTry = [
+        videoUrl,
+        userId ? `${userId}/${videoId}.mp4` : null,
+        userId ? `${userId}/${videoId}.webm` : null,
+      ].filter((p): p is string => !!p);
 
-      if (!videoBlob && videoUrl) {
-        setLoading(true);
-        videoBlob = await downloadVideoFromCloud(videoUrl) ?? undefined;
-        setLoading(false);
-        if (cancelled) return;
+      if (pathsToTry.length === 0) { setError(true); return; }
+
+      setLoading(true);
+      let videoBlob: Blob | null = null;
+      for (const path of pathsToTry) {
+        console.log('[VideoPlayer] Trying:', path);
+        videoBlob = await downloadVideoFromCloud(path);
+        if (videoBlob) break;
       }
+      setLoading(false);
 
-      if (!videoBlob && userId) {
-        setLoading(true);
-        for (const ext of ['mp4', 'webm']) {
-          videoBlob = await downloadVideoFromCloud(`${userId}/${videoId}.${ext}`) ?? undefined;
-          if (videoBlob) break;
-        }
-        setLoading(false);
-        if (cancelled) return;
-      }
-
+      if (cancelled) return;
       if (!videoBlob) { setError(true); return; }
 
       const url = URL.createObjectURL(videoBlob);
-      if (!cancelled) setObjectUrl(url);
+      urlRef.current = url;
+      setObjectUrl(url);
     }
 
     void init();
     return () => {
       cancelled = true;
-      if (objectUrl) URL.revokeObjectURL(objectUrl);
+      if (urlRef.current) URL.revokeObjectURL(urlRef.current);
     };
   }, [blob, videoUrl]);
 
@@ -160,6 +172,8 @@ export function VideoScreen() {
       if (!error) {
         videoUrl = path;
         clip.videoUrl = path;
+      } else {
+        console.error('[VideoSave] Storage upload failed:', error.message);
       }
     }
 
