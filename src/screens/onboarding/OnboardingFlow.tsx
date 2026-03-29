@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ParentChildIllustration } from '@/components/illustrations/ParentChildIllustration';
 import { MicrophoneHero } from '@/components/illustrations/MicrophoneHero';
@@ -262,23 +262,12 @@ export function OnboardingFlow({ pricingPath = '/pricing' }: { pricingPath?: str
   const [selectedOption, setSelectedOption] = useState<number | null>(null);
   const [isTransitioning, setIsTransitioning] = useState(false);
   const [visible, setVisible] = useState(true);
-  const [tapHintVisible, setTapHintVisible] = useState(false);
-  const hintTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const navigate = useNavigate();
 
   const slide = SLIDES[currentSlide];
   const progress = currentSlide / (TOTAL - 1);
   const isStoryOrPromise = slide.type === 'story' || slide.type === 'promise' || slide.type === 'gallery' || slide.type === 'benefits' || slide.type === 'growth';
   const showSkip = currentSlide < 7;
-
-  useEffect(() => {
-    setTapHintVisible(false);
-    if (hintTimerRef.current) clearTimeout(hintTimerRef.current);
-    if (isStoryOrPromise) {
-      hintTimerRef.current = setTimeout(() => setTapHintVisible(true), 1600);
-    }
-    return () => { if (hintTimerRef.current) clearTimeout(hintTimerRef.current); };
-  }, [currentSlide, isStoryOrPromise]);
 
   function advance() {
     if (isTransitioning || currentSlide >= TOTAL - 1) return;
@@ -566,12 +555,9 @@ export function OnboardingFlow({ pricingPath = '/pricing' }: { pricingPath?: str
         )}
       </div>
 
-      {/* Tap-to-continue hint (story + promise slides only) */}
+      {/* Tap-to-continue hint (story + promise slides only) — always visible, no animation */}
       {isStoryOrPromise && (
-        <div
-          className="absolute bottom-[8%] left-0 right-0 flex justify-center pointer-events-none z-10"
-          style={{ opacity: tapHintVisible ? 1 : 0, transition: 'opacity 0.6s ease' }}
-        >
+        <div className="absolute bottom-[8%] left-0 right-0 flex justify-center pointer-events-none z-10">
           <div className="flex items-center gap-2 bg-echo-charcoal/75 dark:bg-white/20 px-5 py-2.5 rounded-full">
             <span className="text-base">👆</span>
             <p className="font-nunito font-semibold text-sm text-white">Tap to continue</p>
