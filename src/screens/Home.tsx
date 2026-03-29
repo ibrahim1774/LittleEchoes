@@ -236,8 +236,11 @@ export function Home() {
                     })}
                   </span>
                 </div>
-                <p className="font-nunito text-echo-charcoal dark:text-white text-xs leading-snug line-clamp-2 mb-2">
-                  {rec.questionText === 'Free recording' ? 'Custom audio' : rec.questionText}
+                <p className="font-nunito text-echo-charcoal dark:text-white text-xs leading-snug line-clamp-2">
+                  {rec.parentNote || (rec.questionId.startsWith('free-') || rec.questionText === 'Custom audio' || rec.questionText === 'Free recording' ? 'Custom audio' : rec.questionText)}
+                </p>
+                <p className="font-inter text-echo-gray text-[10px] mb-2">
+                  {rec.questionId.startsWith('free-') || rec.questionText === 'Custom audio' || rec.questionText === 'Free recording' ? 'Custom audio' : 'Question of the day'}
                 </p>
                 <div className="flex items-center justify-between">
                   <div

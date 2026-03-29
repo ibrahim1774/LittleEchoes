@@ -428,7 +428,9 @@ function RecordingCard({
 }) {
   const catKey = rec.questionId.split('-')[0];
   const catColor = CATEGORY_COLORS[catKey] ?? '#8E8E93';
-  const catLabel = CATEGORY_LABELS[catKey] ?? '';
+  const isFree = rec.questionText === 'Free recording' || rec.questionText === 'Custom audio' || rec.questionId.startsWith('free-');
+  const title = rec.parentNote || (isFree ? 'Custom audio' : rec.questionText);
+  const subtitle = isFree ? 'Custom audio' : 'Question of the day';
 
   return (
     <div className="bg-white dark:bg-echo-dark-card rounded-2xl shadow-soft overflow-hidden">
@@ -436,9 +438,9 @@ function RecordingCard({
         <div className="w-2.5 h-2.5 rounded-full flex-shrink-0 mt-1.5" style={{ backgroundColor: catColor }} />
         <div className="flex-1 min-w-0">
           <p className={`font-nunito font-semibold text-sm text-echo-charcoal dark:text-white leading-snug ${isOpen ? '' : 'line-clamp-2'}`}>
-            {rec.questionText === 'Free recording' ? 'Custom audio' : rec.questionText}
+            {title}
           </p>
-          <p className="font-inter text-xs text-echo-gray mt-0.5">{catLabel}</p>
+          <p className="font-inter text-xs text-echo-gray mt-0.5">{subtitle}</p>
         </div>
         <div className="flex items-center gap-1.5 flex-shrink-0">
           {rec.emotionTag && <span className="text-base">{EMOTION_EMOJIS[rec.emotionTag]}</span>}
@@ -1180,10 +1182,11 @@ export function Memories() {
                               {rec.durationSeconds ? formatDuration(rec.durationSeconds) : '—'}
                             </span>
                           </div>
-                          <p className="font-nunito font-semibold text-sm text-echo-charcoal dark:text-white leading-snug mb-2">
-                            {rec.questionText === 'Free recording' || rec.questionText === 'Custom audio'
-                              ? 'Custom audio'
-                              : rec.questionText}
+                          <p className="font-nunito font-semibold text-sm text-echo-charcoal dark:text-white leading-snug">
+                            {rec.parentNote || (rec.questionId.startsWith('free-') || rec.questionText === 'Custom audio' || rec.questionText === 'Free recording' ? 'Custom audio' : rec.questionText)}
+                          </p>
+                          <p className="font-inter text-xs text-echo-gray mb-2">
+                            {rec.questionId.startsWith('free-') || rec.questionText === 'Custom audio' || rec.questionText === 'Free recording' ? 'Custom audio' : 'Question of the day'}
                           </p>
                           <AudioPlayer
                             blob={rec.audioBlob}
