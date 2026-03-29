@@ -18,6 +18,7 @@ const initialState: AppState = {
   todayQuestions: [],
   todaySession: null,
   todayProgress: null,
+  todayVideoRecorded: false,
   streak: null,
   isLoading: true,
   user: null,
@@ -62,6 +63,8 @@ function reducer(state: AppState, action: AppAction): AppState {
       return { ...state, user: action.payload };
     case 'SET_TODAY_PROGRESS':
       return { ...state, todayProgress: action.payload };
+    case 'SET_TODAY_VIDEO_RECORDED':
+      return { ...state, todayVideoRecorded: action.payload };
     default:
       return state;
   }

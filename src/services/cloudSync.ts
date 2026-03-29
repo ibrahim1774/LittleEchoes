@@ -3,6 +3,7 @@ import { db } from './db';
 import type { AuthUser } from '@/types';
 
 const STORAGE_BUCKET = 'recordings';
+const VIDEO_BUCKET = 'videos';
 
 /**
  * Upload parent profile, children, and recordings to Supabase.
@@ -80,6 +81,44 @@ export async function syncToCloud(user: AuthUser): Promise<void> {
       }));
       await supabase.from('sessions').upsert(sessionRows);
     }
+
+    // Sync videos
+    const videos = await db.videos.toArray();
+    if (videos.length > 0) {
+      const videoRows = [];
+      for (const v of videos) {
+        let videoUrl = v.videoUrl;
+        if (v.videoBlob && !videoUrl) {
+          const ext = v.mimeType?.includes('mp4') ? 'mp4' : 'webm';
+          const contentType = v.mimeType?.includes('mp4') ? 'video/mp4' : 'video/webm';
+          const path = `${user.id}/${v.id}.${ext}`;
+          const { error } = await supabase.storage
+            .from(VIDEO_BUCKET)
+            .upload(path, v.videoBlob, { contentType, upsert: true });
+          if (!error) {
+            videoUrl = path;
+            await db.videos.update(v.id, { videoUrl: path });
+          } else {
+            console.error(`[syncToCloud] Video upload failed for ${v.id}:`, error.message);
+          }
+        }
+        videoRows.push({
+          id: v.id,
+          user_id: user.id,
+          data: JSON.stringify({
+            childId: v.childId,
+            date: v.date,
+            durationSeconds: v.durationSeconds,
+            mimeType: v.mimeType,
+            caption: v.caption,
+            createdAt: v.createdAt,
+            videoUrl,
+          }),
+          created_at: v.createdAt,
+        });
+      }
+      await supabase.from('videos').upsert(videoRows);
+    }
   } catch (err) {
     console.error('[syncToCloud] Sync failed:', err);
   }
@@ -148,6 +187,24 @@ export async function loadFromCloud(user: AuthUser): Promise<void> {
         }
       }
     }
+
+    // Restore videos
+    const { data: cloudVideos } = await supabase
+      .from('videos')
+      .select('id, data, created_at')
+      .eq('user_id', user.id);
+
+    if (cloudVideos && cloudVideos.length > 0) {
+      for (const row of cloudVideos) {
+        const meta = JSON.parse(row.data as string);
+        const existing = await db.videos.get(row.id);
+        if (!existing) {
+          await db.videos.put({ id: row.id, ...meta });
+        } else if (meta.videoUrl && !existing.videoUrl) {
+          await db.videos.update(row.id, { videoUrl: meta.videoUrl });
+        }
+      }
+    }
   } catch (err) {
     console.error('[loadFromCloud] Load failed:', err);
   }
@@ -189,5 +246,43 @@ export async function downloadAudioFromCloud(audioUrl: string): Promise<Blob | n
   } catch (err) {
     console.error('[downloadAudio] Exception:', audioUrl, err);
     return null;
+  }
+}
+
+/**
+ * Download a video from Supabase Storage.
+ */
+export async function downloadVideoFromCloud(videoUrl: string): Promise<Blob | null> {
+  try {
+    const { data, error } = await supabase.storage
+      .from(VIDEO_BUCKET)
+      .download(videoUrl);
+    if (error) {
+      console.error('[downloadVideo] Failed:', videoUrl, error.message);
+      return null;
+    }
+    if (!data) return null;
+    return data;
+  } catch (err) {
+    console.error('[downloadVideo] Exception:', videoUrl, err);
+    return null;
+  }
+}
+
+/**
+ * Delete a video from Supabase (metadata + file).
+ */
+export async function deleteVideoFromCloud(
+  user: AuthUser,
+  videoId: string,
+  videoUrl?: string
+): Promise<void> {
+  try {
+    await supabase.from('videos').delete().eq('id', videoId).eq('user_id', user.id);
+    if (videoUrl) {
+      await supabase.storage.from(VIDEO_BUCKET).remove([videoUrl]);
+    }
+  } catch {
+    // Best-effort
   }
 }

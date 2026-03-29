@@ -71,6 +71,18 @@ export interface Recording {
   createdAt: string;
 }
 
+export interface VideoClip {
+  id: string;
+  childId: string;
+  date: string; // YYYY-MM-DD (one per day)
+  videoBlob?: Blob;
+  videoUrl?: string; // Supabase Storage path
+  mimeType?: string;
+  durationSeconds: number;
+  caption?: string;
+  createdAt: string;
+}
+
 export interface Streak {
   childId: string;
   currentStreak: number;
@@ -101,6 +113,7 @@ export interface AppState {
   todaySession: RecordingSession | null;
   todayProgress: TodayProgress | null;
   streak: Streak | null;
+  todayVideoRecorded: boolean;
   isLoading: boolean;
   user: AuthUser | null;
 }
@@ -117,7 +130,8 @@ export type AppAction =
   | { type: 'SET_STREAK'; payload: Streak | null }
   | { type: 'SET_LOADING'; payload: boolean }
   | { type: 'SET_USER'; payload: AuthUser | null }
-  | { type: 'SET_TODAY_PROGRESS'; payload: TodayProgress | null };
+  | { type: 'SET_TODAY_PROGRESS'; payload: TodayProgress | null }
+  | { type: 'SET_TODAY_VIDEO_RECORDED'; payload: boolean };
 
 /*
  * ============================================================

@@ -6,6 +6,7 @@ import type {
   RecordingSession,
   Recording,
   Streak,
+  VideoClip,
 } from '@/types';
 import { STARTER_QUESTIONS } from '@/data/questions';
 
@@ -16,6 +17,7 @@ class LittleEchoesDB extends Dexie {
   sessions!: Table<RecordingSession>;
   recordings!: Table<Recording>;
   streaks!: Table<Streak>;
+  videos!: Table<VideoClip>;
 
   constructor() {
     super('LittleEchoesDB');
@@ -26,6 +28,15 @@ class LittleEchoesDB extends Dexie {
       sessions: 'id, childId, date, createdAt',
       recordings: 'id, sessionId, childId, questionId, createdAt',
       streaks: 'childId',
+    });
+    this.version(2).stores({
+      parents: 'id, createdAt',
+      children: 'id, parentId, createdAt',
+      questions: 'id, category, isCustom, createdBy',
+      sessions: 'id, childId, date, createdAt',
+      recordings: 'id, sessionId, childId, questionId, createdAt',
+      streaks: 'childId',
+      videos: 'id, childId, date, createdAt',
     });
 
     // Seed starter questions on first open + one-time data fixes

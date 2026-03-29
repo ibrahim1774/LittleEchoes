@@ -4,6 +4,7 @@ import { useApp } from '@/context/AppContext';
 const tabs = [
   { to: '/home', label: 'Home', icon: HomeIcon },
   { to: '/today', label: 'Record', icon: MicIcon, featured: true },
+  { to: '/videos', label: 'Video', icon: VideoIcon },
   { to: '/memories', label: 'Memories', icon: SparklesIcon },
   { to: '/settings', label: 'Settings', icon: SettingsIcon },
 ];
@@ -79,6 +80,14 @@ function SparklesIcon({ className }: { className?: string }) {
   return (
     <svg className={className} fill="currentColor" viewBox="0 0 24 24">
       <path d="M12 2l2.4 7.4H22l-6.2 4.5 2.4 7.4L12 17l-6.2 4.3 2.4-7.4L2 9.4h7.6z" />
+    </svg>
+  );
+}
+
+function VideoIcon({ className }: { className?: string }) {
+  return (
+    <svg className={className} fill="currentColor" viewBox="0 0 24 24">
+      <path d="M17 10.5V7c0-.55-.45-1-1-1H4c-.55 0-1 .45-1 1v10c0 .55.45 1 1 1h12c.55 0 1-.45 1-1v-3.5l4 4v-11l-4 4z" />
     </svg>
   );
 }

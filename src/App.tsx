@@ -14,13 +14,14 @@ import { AddChild } from '@/screens/AddChild';
 import { Home } from '@/screens/Home';
 import { TodayScreen } from '@/screens/today/TodayScreen';
 import { Memories } from '@/screens/Memories';
+import { VideoScreen } from '@/screens/VideoScreen';
 import { Settings } from '@/screens/Settings';
 import { PaymentSuccessScreen } from '@/screens/auth/PaymentSuccessScreen';
 import { SignupScreen } from '@/screens/auth/SignupScreen';
 import { SigninScreen } from '@/screens/auth/SigninScreen';
 import { DebugConsole } from '@/components/DebugConsole';
 
-const TAB_ROUTES = ['/home', '/today', '/memories', '/settings'];
+const TAB_ROUTES = ['/home', '/today', '/videos', '/memories', '/settings'];
 
 function AppShell() {
   const { state } = useApp();
@@ -63,6 +64,13 @@ function AppShell() {
           element={
             !state.isOnboarded ? <Navigate to="/" replace /> :
             <TodayScreen />
+          }
+        />
+        <Route
+          path="/videos"
+          element={
+            !state.isOnboarded ? <Navigate to="/" replace /> :
+            <VideoScreen />
           }
         />
         <Route

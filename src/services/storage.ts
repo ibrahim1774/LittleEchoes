@@ -13,6 +13,7 @@ import type {
   Recording,
   Streak,
   AgeGroup,
+  VideoClip,
 } from '@/types';
 
 // ── Helpers ──────────────────────────────────────────────────
@@ -290,4 +291,31 @@ export async function getQuestionsForChild(child: ChildProfile): Promise<Questio
   } catch { /* storage full — non-critical */ }
 
   return result;
+}
+
+// ── Videos ────────────────────────────────────────────────────
+
+export async function saveVideo(video: VideoClip): Promise<void> {
+  await db.videos.put(video);
+}
+
+export async function getVideosByChild(childId: string): Promise<VideoClip[]> {
+  return db.videos
+    .where('childId')
+    .equals(childId)
+    .reverse()
+    .sortBy('createdAt');
+}
+
+export async function getTodayVideo(childId: string): Promise<VideoClip | undefined> {
+  const todayStr = today();
+  return db.videos
+    .where('childId')
+    .equals(childId)
+    .and((v) => v.date === todayStr)
+    .first();
+}
+
+export async function deleteVideo(id: string): Promise<void> {
+  await db.videos.delete(id);
 }
