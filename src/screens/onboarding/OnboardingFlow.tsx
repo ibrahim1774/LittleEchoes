@@ -5,7 +5,7 @@ import { MicrophoneHero } from '@/components/illustrations/MicrophoneHero';
 import { CelebrationStars } from '@/components/illustrations/CelebrationStars';
 import { RainbowArc } from '@/components/illustrations/RainbowArc';
 
-const TOTAL = 12;
+const TOTAL = 13;
 
 type StorySlide = {
   type: 'story';
@@ -49,7 +49,15 @@ type BenefitsSlide = {
   benefits: { icon: string; title: string; desc: string; color: string }[];
 };
 
-type Slide = StorySlide | QuestionSlide | PromiseSlide | CTASlide | GallerySlide | BenefitsSlide;
+type GrowthSlide = {
+  type: 'growth';
+  headline: string;
+  sub: string;
+  src: string;
+  benefits: string[];
+};
+
+type Slide = StorySlide | QuestionSlide | PromiseSlide | CTASlide | GallerySlide | BenefitsSlide | GrowthSlide;
 
 const CHALLENGE_SUBTITLES: Record<number, string> = {
   0: "We'll keep it quick — just 3 questions, about 5 minutes a day.",
@@ -147,7 +155,6 @@ const SLIDES: Slide[] = [
     steps: [
       { src: '/IMG_3453.jpg', label: 'Record their answers' },
       { src: '/IMG_3455.jpg', label: 'Browse by date' },
-      { src: '/IMG_3457.png', label: 'Watch their voice grow' },
     ],
   },
   {
@@ -159,6 +166,18 @@ const SLIDES: Slide[] = [
       { icon: '🎙️', title: 'Their voice, preserved', desc: 'Before it changes forever', color: '#6BC5F8' },
       { icon: '🌱', title: 'Voice growth timeline', desc: 'Hear how they change week by week, month by month', color: '#A8E06C' },
       { icon: '🔒', title: '100% private', desc: "Your family's memories, nobody else's", color: '#C4A1FF' },
+    ],
+  },
+  {
+    type: 'growth',
+    headline: "Their voice is growing.\nAre you capturing it?",
+    sub: "The Voice Growth Timeline lets you hear exactly how they change — week by week, month by month, year by year.",
+    src: '/IMG_3457.png',
+    benefits: [
+      'Pick any time range — 3 months to all time',
+      'Choose intervals — weekly, monthly, or yearly',
+      'One recording per interval, curated for you',
+      'Shuffle to discover different moments',
     ],
   },
   {
@@ -249,7 +268,7 @@ export function OnboardingFlow({ pricingPath = '/pricing' }: { pricingPath?: str
 
   const slide = SLIDES[currentSlide];
   const progress = currentSlide / (TOTAL - 1);
-  const isStoryOrPromise = slide.type === 'story' || slide.type === 'promise' || slide.type === 'gallery' || slide.type === 'benefits';
+  const isStoryOrPromise = slide.type === 'story' || slide.type === 'promise' || slide.type === 'gallery' || slide.type === 'benefits' || slide.type === 'growth';
   const showSkip = currentSlide < 7;
 
   useEffect(() => {
@@ -431,6 +450,37 @@ export function OnboardingFlow({ pricingPath = '/pricing' }: { pricingPath?: str
             <p className="font-nunito text-sm text-echo-gray leading-relaxed text-center italic whitespace-pre-line max-w-xs">
               {slide.sub}
             </p>
+          </div>
+        )}
+
+        {/* ── GROWTH SLIDE ── */}
+        {slide.type === 'growth' && (
+          <div className="flex flex-col items-center justify-center flex-1 w-full gap-4">
+            <div className="text-center space-y-2 max-w-xs">
+              <h1 className="font-nunito font-extrabold text-[26px] leading-tight text-echo-charcoal dark:text-white whitespace-pre-line">
+                {slide.headline}
+              </h1>
+              <p className="font-nunito text-sm text-echo-gray leading-relaxed">
+                {slide.sub}
+              </p>
+            </div>
+
+            <div className="rounded-[24px] border-2 border-echo-light-gray shadow-soft overflow-hidden bg-white" style={{ width: 200 }}>
+              <img src={slide.src} alt="Voice Growth Timeline" className="w-full h-auto object-contain" loading="lazy" />
+            </div>
+
+            <div className="w-full space-y-2.5 max-w-xs">
+              {slide.benefits.map((b, i) => (
+                <div key={i} className="flex items-start gap-2.5">
+                  <div className="w-5 h-5 rounded-full bg-echo-coral/15 flex items-center justify-center flex-shrink-0 mt-0.5">
+                    <svg width="10" height="10" viewBox="0 0 12 12" fill="none">
+                      <path d="M2 6l3 3 5-5" stroke="#FF6B6B" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                    </svg>
+                  </div>
+                  <p className="font-inter text-xs text-echo-charcoal dark:text-white leading-snug">{b}</p>
+                </div>
+              ))}
+            </div>
           </div>
         )}
 

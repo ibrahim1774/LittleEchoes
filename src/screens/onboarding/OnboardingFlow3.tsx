@@ -1,7 +1,7 @@
 import { useState, useRef } from 'react';
 import { ParentChildIllustration } from '@/components/illustrations/ParentChildIllustration';
 
-const TOTAL = 5;
+const TOTAL = 6;
 
 const AGE_OPTIONS = [
   { label: 'Under 2', value: 'under-2', icon: '👶' },
@@ -21,7 +21,6 @@ const EMOTION_OPTIONS = [
 const FEATURES = [
   { src: '/IMG_3452.jpg', title: 'Record in seconds', desc: 'One tap to capture their voice. We handle the rest.' },
   { src: '/IMG_3454.jpg', title: 'Your voice time capsule', desc: 'Organized by age, preserved forever.' },
-  { src: '/IMG_3457.png', title: 'Watch them grow', desc: 'Hear their voice change week by week, month by month.' },
   { src: '/IMG_3455.jpg', title: 'Share or keep forever', desc: 'Play it back years from now. Share with grandparents anytime.' },
 ];
 
@@ -324,8 +323,53 @@ export function OnboardingFlow3() {
         {/* ── SCREEN 4: Product Preview (Carousel) ── */}
         {screen === 3 && <ProductPreviewCarousel onContinue={advance} />}
 
-        {/* ── SCREEN 5: Paywall ── */}
+        {/* ── SCREEN 5: Growth Showcase ── */}
         {screen === 4 && (
+          <div className="flex flex-col items-center w-full gap-4 pt-2 flex-1">
+            <div className="text-center space-y-2 max-w-xs">
+              <h1 className="font-nunito font-extrabold text-[24px] leading-tight text-echo-charcoal dark:text-white whitespace-pre-line">
+                Their voice is growing.{'\n'}Are you capturing it?
+              </h1>
+              <p className="font-inter text-sm text-echo-gray leading-relaxed">
+                The Voice Growth Timeline lets you hear exactly how they change — week by week, month by month, year by year.
+              </p>
+            </div>
+
+            <div className="rounded-[24px] border-2 border-echo-light-gray shadow-soft overflow-hidden bg-white" style={{ width: 180 }}>
+              <img src="/IMG_3457.png" alt="Voice Growth Timeline" className="w-full h-auto object-contain" loading="lazy" />
+            </div>
+
+            <div className="w-full space-y-2.5">
+              {[
+                'Pick any time range — 3 months to all time',
+                'Choose intervals — weekly, monthly, or yearly',
+                'One recording per interval, curated for you',
+                'Shuffle to discover different moments',
+              ].map((b, i) => (
+                <div key={i} className="flex items-start gap-2.5">
+                  <div className="w-5 h-5 rounded-full bg-echo-coral/15 flex items-center justify-center flex-shrink-0 mt-0.5">
+                    <svg width="10" height="10" viewBox="0 0 12 12" fill="none">
+                      <path d="M2 6l3 3 5-5" stroke="#FF6B6B" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                    </svg>
+                  </div>
+                  <p className="font-inter text-xs text-echo-charcoal dark:text-white leading-snug">{b}</p>
+                </div>
+              ))}
+            </div>
+
+            <div className="mt-auto pt-3 w-full">
+              <button
+                onClick={advance}
+                className="w-full bg-echo-coral text-white font-nunito font-bold text-base py-4 rounded-full shadow-coral active:scale-95 transition-transform"
+              >
+                See My Plan →
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* ── SCREEN 6: Paywall ── */}
+        {screen === 5 && (
           <div className="flex flex-col w-full gap-4 pt-2 flex-1">
             <div className="text-center space-y-2">
               <h1 className="font-nunito font-extrabold text-[24px] leading-tight text-echo-charcoal dark:text-white">
