@@ -155,20 +155,24 @@ export async function loadFromCloud(user: AuthUser): Promise<void> {
       .select('id, data, created_at')
       .eq('user_id', user.id);
 
+    const cloudRecordingIds = new Set<string>();
     if (recordings && recordings.length > 0) {
       for (const row of recordings) {
+        cloudRecordingIds.add(row.id);
         const meta = JSON.parse(row.data as string);
-        // Only restore if we don't already have this recording locally (preserve local blob)
         const existing = await db.recordings.get(row.id);
         if (!existing) {
-          await db.recordings.put({
-            id: row.id,
-            ...meta,
-          });
+          await db.recordings.put({ id: row.id, ...meta });
         } else if (meta.audioUrl && !existing.audioUrl) {
-          // Cloud has audioUrl but local doesn't — update it
           await db.recordings.update(row.id, { audioUrl: meta.audioUrl });
         }
+      }
+    }
+    // Remove local recordings that were deleted from cloud
+    const localRecordings = await db.recordings.toArray();
+    for (const local of localRecordings) {
+      if (!cloudRecordingIds.has(local.id)) {
+        await db.recordings.delete(local.id);
       }
     }
 
@@ -194,8 +198,10 @@ export async function loadFromCloud(user: AuthUser): Promise<void> {
       .select('id, data, created_at')
       .eq('user_id', user.id);
 
+    const cloudVideoIds = new Set<string>();
     if (cloudVideos && cloudVideos.length > 0) {
       for (const row of cloudVideos) {
+        cloudVideoIds.add(row.id);
         const meta = JSON.parse(row.data as string);
         const existing = await db.videos.get(row.id);
         if (!existing) {
@@ -203,6 +209,13 @@ export async function loadFromCloud(user: AuthUser): Promise<void> {
         } else if (meta.videoUrl && !existing.videoUrl) {
           await db.videos.update(row.id, { videoUrl: meta.videoUrl });
         }
+      }
+    }
+    // Remove local videos that were deleted from cloud
+    const localVideos = await db.videos.toArray();
+    for (const local of localVideos) {
+      if (!cloudVideoIds.has(local.id)) {
+        await db.videos.delete(local.id);
       }
     }
   } catch (err) {
