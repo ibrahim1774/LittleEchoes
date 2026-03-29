@@ -3,7 +3,7 @@ import { useApp } from '@/context/AppContext';
 import { getRecordingsByChild, getSessionsByChild, deleteRecording, getVideosByChild, deleteVideo } from '@/services/storage';
 import { downloadAudioFromCloud, deleteRecordingFromCloud, downloadVideoFromCloud, deleteVideoFromCloud, syncToCloud } from '@/services/cloudSync';
 import { EmptyMemoriesIllustration } from '@/components/illustrations/EmptyMemoriesIllustration';
-import { CATEGORY_COLORS, CATEGORY_LABELS } from '@/data/questions';
+import { CATEGORY_COLORS } from '@/data/questions';
 import type { Recording, RecordingSession, VideoClip } from '@/types';
 
 function formatDate(isoDate: string): string {
