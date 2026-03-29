@@ -8,6 +8,7 @@ import {
 import type { AppState, AppAction } from '@/types';
 import { getParent, getChildren, getStreak } from '@/services/storage';
 import { supabase } from '@/services/supabase';
+import { loadFromCloud } from '@/services/cloudSync';
 
 const initialState: AppState = {
   parent: null,
@@ -88,7 +89,10 @@ export function AppProvider({ children }: { children: ReactNode }) {
         try {
           const { data: { session } } = await supabase.auth.getSession();
           if (session?.user) {
-            dispatch({ type: 'SET_USER', payload: { id: session.user.id, email: session.user.email ?? '' } });
+            const user = { id: session.user.id, email: session.user.email ?? '' };
+            dispatch({ type: 'SET_USER', payload: user });
+            // Sync from cloud so deletions and new data from other devices are reflected
+            await loadFromCloud(user);
           }
         } catch {
           // Auth check failed (expired token, network issue) — continue with local data
