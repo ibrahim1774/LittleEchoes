@@ -1,7 +1,7 @@
-import { useState, useRef } from 'react';
+import { useState } from 'react';
 import { ParentChildIllustration } from '@/components/illustrations/ParentChildIllustration';
 
-const TOTAL = 6;
+const TOTAL = 8;
 
 const AGE_OPTIONS = [
   { label: 'Under 2', value: 'under-2', icon: '👶' },
@@ -35,86 +35,6 @@ function PhoneMockup({ src, alt, width = 120 }: { src: string; alt: string; widt
   );
 }
 
-function ProductPreviewCarousel({ onContinue }: { onContinue: () => void }) {
-  const scrollRef = useRef<HTMLDivElement>(null);
-  const [activeSlide, setActiveSlide] = useState(0);
-
-  function handleScroll() {
-    const el = scrollRef.current;
-    if (!el) return;
-    const index = Math.round(el.scrollLeft / el.clientWidth);
-    setActiveSlide(index);
-  }
-
-  return (
-    <div className="flex flex-col w-full pt-2 flex-1">
-      {/* Carousel */}
-      <div
-        ref={scrollRef}
-        onScroll={handleScroll}
-        className="flex overflow-x-auto flex-1"
-        style={{ scrollSnapType: 'x mandatory', scrollbarWidth: 'none' }}
-      >
-        {FEATURES.map((feat, i) => (
-          <div
-            key={i}
-            className="min-w-full flex flex-col items-center justify-center gap-4 px-6"
-            style={{ scrollSnapAlign: 'center' }}
-          >
-            <PhoneMockup src={feat.src} alt={feat.title} width={200} />
-            <div className="text-center space-y-1 max-w-xs">
-              <p className="font-nunito font-bold text-base text-echo-charcoal dark:text-white">
-                {feat.title}
-              </p>
-              <p className="font-inter text-sm text-echo-gray leading-relaxed">
-                {feat.desc}
-              </p>
-            </div>
-          </div>
-        ))}
-      </div>
-
-      {/* Dot indicators + step label */}
-      <div className="flex flex-col items-center gap-1.5 py-3">
-        <div className="flex gap-2">
-          {FEATURES.map((_, i) => (
-            <div
-              key={i}
-              className={`rounded-full transition-all ${
-                i === activeSlide ? 'w-6 h-2 bg-echo-coral' : 'w-2 h-2 bg-echo-light-gray'
-              }`}
-            />
-          ))}
-        </div>
-        <p className="font-nunito font-semibold text-xs text-echo-charcoal dark:text-white">
-          Step {activeSlide + 1} of {FEATURES.length}
-        </p>
-        {activeSlide < FEATURES.length - 1 && (
-          <p className="font-inter text-xs text-echo-gray">
-            Swipe to see the next step →
-          </p>
-        )}
-      </div>
-
-      {/* Trust strip */}
-      <div className="rounded-xl bg-echo-coral/5 px-4 py-2.5 mx-0">
-        <p className="font-nunito text-xs text-echo-charcoal dark:text-white text-center font-semibold">
-          🔒 Private & secure. Your recordings belong to you.
-        </p>
-      </div>
-
-      {/* CTA — always visible */}
-      <div className="pt-3">
-        <button
-          onClick={onContinue}
-          className="w-full bg-echo-coral text-white font-nunito font-bold text-base py-4 rounded-full shadow-coral active:scale-95 transition-transform"
-        >
-          See My Plan →
-        </button>
-      </div>
-    </div>
-  );
-}
 
 export function OnboardingFlow3() {
   const [screen, setScreen] = useState(0);
@@ -321,10 +241,39 @@ export function OnboardingFlow3() {
         )}
 
         {/* ── SCREEN 4: Product Preview (Carousel) ── */}
-        {screen === 3 && <ProductPreviewCarousel onContinue={advance} />}
+        {/* ── SCREENS 4–6: Feature Pages ── */}
+        {screen >= 3 && screen <= 5 && (() => {
+          const feat = FEATURES[screen - 3];
+          if (!feat) return null;
+          const stepNum = screen - 2; // 1, 2, 3
+          return (
+            <div className="flex flex-col items-center w-full gap-5 pt-2 flex-1">
+              <p className="font-nunito font-bold text-xs text-echo-coral uppercase tracking-wider">
+                Step {stepNum} of 3
+              </p>
+              <PhoneMockup src={feat.src} alt={feat.title} width={220} />
+              <div className="text-center space-y-2 max-w-xs">
+                <h1 className="font-nunito font-extrabold text-[22px] leading-tight text-echo-charcoal dark:text-white">
+                  {feat.title}
+                </h1>
+                <p className="font-inter text-sm text-echo-gray leading-relaxed">
+                  {feat.desc}
+                </p>
+              </div>
+              <div className="mt-auto pt-3 w-full">
+                <button
+                  onClick={advance}
+                  className="w-full bg-echo-coral text-white font-nunito font-bold text-base py-4 rounded-full shadow-coral active:scale-95 transition-transform"
+                >
+                  Tap to Continue
+                </button>
+              </div>
+            </div>
+          );
+        })()}
 
-        {/* ── SCREEN 5: Growth Showcase ── */}
-        {screen === 4 && (
+        {/* ── SCREEN 7: Growth Showcase ── */}
+        {screen === 6 && (
           <div className="flex flex-col items-center w-full gap-4 pt-2 flex-1">
             <div className="text-center space-y-2 max-w-xs">
               <h1 className="font-nunito font-extrabold text-[24px] leading-tight text-echo-charcoal dark:text-white whitespace-pre-line">
@@ -368,8 +317,8 @@ export function OnboardingFlow3() {
           </div>
         )}
 
-        {/* ── SCREEN 6: Paywall ── */}
-        {screen === 5 && (
+        {/* ── SCREEN 8: Paywall ── */}
+        {screen === 7 && (
           <div className="flex flex-col w-full gap-4 pt-2 flex-1">
             <div className="text-center space-y-2">
               <h1 className="font-nunito font-extrabold text-[24px] leading-tight text-echo-charcoal dark:text-white">
