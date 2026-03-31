@@ -170,14 +170,14 @@ const SLIDES: Slide[] = [
   },
   {
     type: 'growth',
-    headline: "Their voice is growing.\nAre you capturing it?",
-    sub: "The Voice Growth Timeline lets you hear exactly how they change — week by week, month by month, year by year.",
+    headline: "Hear them grow up.\nOne voice at a time.",
+    sub: "Play back their voice from 6 months ago. Then today. The difference will give you chills.",
     src: '/IMG_3457.png',
     benefits: [
-      'Pick any time range — 3 months to all time',
-      'Choose intervals — weekly, monthly, or yearly',
-      'One recording per interval, curated for you',
-      'Shuffle to discover different moments',
+      'Hear their 3-year-old voice next to their 5-year-old voice',
+      'Pick any time range — weekly, monthly, or yearly snapshots',
+      'The app picks the best moments for you automatically',
+      'A time machine for the voice you never want to forget',
     ],
   },
   {

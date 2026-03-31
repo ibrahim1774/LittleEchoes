@@ -248,10 +248,10 @@ export function OnboardingFlow4() {
           <div className="flex flex-col items-center w-full gap-4 pt-2 flex-1">
             <div className="text-center space-y-2 max-w-xs">
               <h1 className="font-nunito font-extrabold text-[24px] leading-tight text-echo-charcoal dark:text-white whitespace-pre-line">
-                Their voice is growing.{'\n'}Are you capturing it?
+                Hear them grow up.{'\n'}One voice at a time.
               </h1>
               <p className="font-inter text-sm text-echo-gray leading-relaxed">
-                The Voice Growth Timeline lets you hear exactly how they change — week by week, month by month, year by year.
+                Play back their voice from 6 months ago. Then today. The difference will give you chills.
               </p>
             </div>
             <div className="rounded-[24px] border-2 border-echo-light-gray shadow-soft overflow-hidden bg-white" style={{ width: 180 }}>
@@ -259,10 +259,10 @@ export function OnboardingFlow4() {
             </div>
             <div className="w-full space-y-2.5">
               {[
-                'Pick any time range — 3 months to all time',
-                'Choose intervals — weekly, monthly, or yearly',
-                'One recording per interval, curated for you',
-                'Shuffle to discover different moments',
+                'Hear their 3-year-old voice next to their 5-year-old voice',
+                'Pick any time range — weekly, monthly, or yearly snapshots',
+                'The app picks the best moments for you automatically',
+                'A time machine for the voice you never want to forget',
               ].map((b, i) => (
                 <div key={i} className="flex items-start gap-2.5">
                   <div className="w-5 h-5 rounded-full bg-echo-coral/15 flex items-center justify-center flex-shrink-0 mt-0.5">
