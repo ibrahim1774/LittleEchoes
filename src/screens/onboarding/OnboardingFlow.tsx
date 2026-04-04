@@ -256,7 +256,7 @@ function renderIllustration(type: StorySlide['illustration']) {
   }
 }
 
-export function OnboardingFlow({ pricingPath = '/pricing' }: { pricingPath?: string } = {}) {
+export function OnboardingFlow() {
   const [currentSlide, setCurrentSlide] = useState(0);
   const [answers, setAnswers] = useState<Record<number, number>>({});
   const [selectedOption, setSelectedOption] = useState<number | null>(null);
@@ -267,7 +267,6 @@ export function OnboardingFlow({ pricingPath = '/pricing' }: { pricingPath?: str
   const slide = SLIDES[currentSlide];
   const progress = currentSlide / (TOTAL - 1);
   const isStoryOrPromise = slide.type === 'story' || slide.type === 'promise' || slide.type === 'gallery' || slide.type === 'benefits' || slide.type === 'growth';
-  const showSkip = currentSlide < 7;
 
   function advance() {
     if (isTransitioning || currentSlide >= TOTAL - 1) return;
@@ -309,16 +308,6 @@ export function OnboardingFlow({ pricingPath = '/pricing' }: { pricingPath?: str
       <span className="absolute top-5 left-5 z-20 font-inter text-xs text-echo-gray">
         {currentSlide + 1} / {TOTAL}
       </span>
-
-      {/* Skip button */}
-      {showSkip && (
-        <button
-          onClick={(e) => { e.stopPropagation(); navigate(pricingPath); }}
-          className="absolute top-4 right-4 z-20 font-nunito text-sm text-echo-gray px-3 py-1 rounded-full hover:bg-echo-light-gray/50 transition-colors"
-        >
-          Skip
-        </button>
-      )}
 
       {/* Animated slide content */}
       <div
@@ -542,14 +531,14 @@ export function OnboardingFlow({ pricingPath = '/pricing' }: { pricingPath?: str
             </div>
 
             <button
-              onClick={(e) => { e.stopPropagation(); navigate(pricingPath); }}
+              onClick={(e) => { e.stopPropagation(); navigate('/signup'); }}
               className="w-full bg-echo-coral text-white font-nunito font-bold text-lg py-4 rounded-full shadow-coral active:scale-95 transition-transform mt-2"
             >
               {slide.buttonText}
             </button>
 
             <p className="font-inter text-xs text-echo-gray text-center">
-              All data stays on your device. No account required.
+              Your echoes are saved securely to the cloud.
             </p>
           </div>
         )}
@@ -569,5 +558,5 @@ export function OnboardingFlow({ pricingPath = '/pricing' }: { pricingPath?: str
 }
 
 export function OnboardingFlow2() {
-  return <OnboardingFlow pricingPath="/pricing-2" />;
+  return <OnboardingFlow />;
 }
