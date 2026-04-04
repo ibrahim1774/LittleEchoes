@@ -62,8 +62,7 @@ export function AddChild() {
     if (showConfetti) {
       const timer = setTimeout(() => {
         dispatch({ type: 'SET_ONBOARDED', payload: true });
-        // If already signed in (adding from Settings), go home.
-        // If not signed in (initial setup flow), go to pricing/paywall.
+        // Route guard on /home will redirect to /paywall if unpaid
         navigate('/home', { replace: true });
       }, 2000);
       return () => clearTimeout(timer);

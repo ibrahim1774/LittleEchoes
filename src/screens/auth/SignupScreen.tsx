@@ -30,6 +30,12 @@ export function SignupScreen() {
       const user = { id: data.user.id, email: data.user.email ?? '' };
       dispatch({ type: 'SET_USER', payload: user });
       void syncToCloud(user);
+      // Check if user paid before signing up (from onboarding flow)
+      if (localStorage.getItem('le_paid') === 'true') {
+        dispatch({ type: 'SET_PAID', payload: true });
+        void supabase.from('profiles').upsert({ id: user.id, paid: true });
+        localStorage.removeItem('le_paid');
+      }
     }
 
     setSuccess(true);

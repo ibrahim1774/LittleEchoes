@@ -17,6 +17,7 @@ import { Home } from '@/screens/Home';
 import { TodayScreen } from '@/screens/today/TodayScreen';
 import { Memories } from '@/screens/Memories';
 import { VideoScreen } from '@/screens/VideoScreen';
+import { PaywallScreen } from '@/screens/PaywallScreen';
 import { Settings } from '@/screens/Settings';
 import { PaymentSuccessScreen } from '@/screens/auth/PaymentSuccessScreen';
 import { SignupScreen } from '@/screens/auth/SignupScreen';
@@ -56,10 +57,12 @@ function AppShell() {
         <Route path="/signin" element={<SigninScreen />} />
         <Route path="/setup/parent" element={<ParentSetup />} />
         <Route path="/setup/child" element={<AddChild />} />
+        <Route path="/paywall" element={<PaywallScreen />} />
         <Route
           path="/home"
           element={
             !state.isOnboarded ? <Navigate to="/" replace /> :
+            !state.isPaid ? <Navigate to="/paywall" replace /> :
             <Home />
           }
         />
@@ -67,6 +70,7 @@ function AppShell() {
           path="/today"
           element={
             !state.isOnboarded ? <Navigate to="/" replace /> :
+            !state.isPaid ? <Navigate to="/paywall" replace /> :
             <TodayScreen />
           }
         />
@@ -74,6 +78,7 @@ function AppShell() {
           path="/videos"
           element={
             !state.isOnboarded ? <Navigate to="/" replace /> :
+            !state.isPaid ? <Navigate to="/paywall" replace /> :
             <VideoScreen />
           }
         />
@@ -81,6 +86,7 @@ function AppShell() {
           path="/memories"
           element={
             !state.isOnboarded ? <Navigate to="/" replace /> :
+            !state.isPaid ? <Navigate to="/paywall" replace /> :
             <Memories />
           }
         />
@@ -88,6 +94,7 @@ function AppShell() {
           path="/settings"
           element={
             !state.isOnboarded ? <Navigate to="/" replace /> :
+            !state.isPaid ? <Navigate to="/paywall" replace /> :
             <Settings />
           }
         />

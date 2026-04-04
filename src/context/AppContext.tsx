@@ -20,6 +20,7 @@ const initialState: AppState = {
   todaySession: null,
   todayProgress: null,
   todayVideoRecorded: false,
+  isPaid: false,
   streak: null,
   isLoading: true,
   user: null,
@@ -66,6 +67,8 @@ function reducer(state: AppState, action: AppAction): AppState {
       return { ...state, todayProgress: action.payload };
     case 'SET_TODAY_VIDEO_RECORDED':
       return { ...state, todayVideoRecorded: action.payload };
+    case 'SET_PAID':
+      return { ...state, isPaid: action.payload };
     default:
       return state;
   }
@@ -93,6 +96,23 @@ export function AppProvider({ children }: { children: ReactNode }) {
             dispatch({ type: 'SET_USER', payload: user });
             // Sync from cloud so deletions and new data from other devices are reflected
             await loadFromCloud(user);
+            // Check paid status
+            try {
+              const { data: profileData } = await supabase
+                .from('profiles')
+                .select('paid')
+                .eq('id', user.id)
+                .single();
+              if (profileData?.paid) {
+                dispatch({ type: 'SET_PAID', payload: true });
+              }
+              // Also check localStorage fallback (set by PaymentSuccessScreen before signup)
+              if (localStorage.getItem('le_paid') === 'true') {
+                dispatch({ type: 'SET_PAID', payload: true });
+              }
+            } catch {
+              // Non-critical — default to unpaid
+            }
           }
         } catch {
           // Auth check failed (expired token, network issue) — continue with local data

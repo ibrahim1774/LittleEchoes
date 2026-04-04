@@ -46,9 +46,23 @@ export function SigninScreen() {
       }
     }
 
-    // If parent data was loaded from cloud, go home. Otherwise, set up profile.
+    // Check paid status
+    let isPaid = false;
+    try {
+      const { data: profileData } = await supabase.from('profiles').select('paid').eq('id', data.user.id).single();
+      isPaid = !!profileData?.paid;
+      if (isPaid) dispatch({ type: 'SET_PAID', payload: true });
+    } catch { /* non-critical */ }
+
+    // Route: no profile → setup, unpaid → paywall, paid → home
     const parentLoaded = await getParent();
-    navigate(parentLoaded ? '/home' : '/setup/parent', { replace: true });
+    if (!parentLoaded) {
+      navigate('/setup/parent', { replace: true });
+    } else if (!isPaid) {
+      navigate('/paywall', { replace: true });
+    } else {
+      navigate('/home', { replace: true });
+    }
   }
 
   async function handleForgotPassword() {

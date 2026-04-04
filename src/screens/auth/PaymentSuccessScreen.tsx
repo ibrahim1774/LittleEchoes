@@ -1,5 +1,7 @@
 import { useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
+import { useApp } from '@/context/AppContext';
+import { supabase } from '@/services/supabase';
 
 declare function fbq(...args: unknown[]): void;
 
@@ -11,6 +13,7 @@ const PLAN_VALUES: Record<string, number> = {
 export function PaymentSuccessScreen() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
+  const { state, dispatch } = useApp();
 
   useEffect(() => {
     const plan = searchParams.get('plan') ?? 'monthly';
@@ -37,6 +40,20 @@ export function PaymentSuccessScreen() {
       }),
     });
 
+    // Mark as paid — store in localStorage (for pre-signup flow) and Supabase (if already signed in)
+    localStorage.setItem('le_paid', 'true');
+    dispatch({ type: 'SET_PAID', payload: true });
+
+    // If user is already authenticated, set paid in Supabase and go to dashboard
+    if (state.user) {
+      void supabase.from('profiles').update({ paid: true }).eq('id', state.user.id);
+      const timer = setTimeout(() => {
+        navigate('/home', { replace: true });
+      }, 2500);
+      return () => clearTimeout(timer);
+    }
+
+    // Not yet signed up — redirect to signup
     const timer = setTimeout(() => {
       navigate('/signup', { replace: true });
     }, 2500);
