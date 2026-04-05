@@ -4,6 +4,8 @@ import { supabase } from '@/services/supabase';
 import { useApp } from '@/context/AppContext';
 import { syncToCloud } from '@/services/cloudSync';
 
+declare function fbq(...args: unknown[]): void;
+
 export function SignupScreen() {
   const navigate = useNavigate();
   const { dispatch } = useApp();
@@ -30,6 +32,8 @@ export function SignupScreen() {
       const user = { id: data.user.id, email: data.user.email ?? '' };
       dispatch({ type: 'SET_USER', payload: user });
       void syncToCloud(user);
+      // Fire Facebook CompleteRegistration pixel
+      try { fbq('track', 'CompleteRegistration'); } catch { /* pixel not loaded */ }
       // Check if user paid before signing up (from onboarding flow)
       if (localStorage.getItem('le_paid') === 'true') {
         dispatch({ type: 'SET_PAID', payload: true });

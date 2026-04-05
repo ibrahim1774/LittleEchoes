@@ -1,8 +1,15 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useApp } from '@/context/AppContext';
+
+declare function fbq(...args: unknown[]): void;
 
 export function PaywallScreen() {
   const { state } = useApp();
+
+  // Fire InitiateCheckout pixel when paywall is shown
+  useEffect(() => {
+    try { fbq('track', 'InitiateCheckout'); } catch { /* pixel not loaded */ }
+  }, []);
   const [selectedPlan, setSelectedPlan] = useState<'monthly' | 'yearly'>('yearly');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
