@@ -50,14 +50,6 @@ const FAQ = [
   { q: 'Is my data used for anything?', a: 'No. No ads, no AI training, no data selling. Recordings belong to the account holder.' },
 ];
 
-const PRICING_FEATURES = [
-  'Unlimited children',
-  '3 daily questions + free recording',
-  'Cloud storage, any device',
-  '\u2018Hear the Growth\u2019 playback',
-  'Download recordings',
-];
-
 // ── Component ──────────────────────────────────────────────
 
 export function LandingPage() {
@@ -102,7 +94,6 @@ export function LandingPage() {
   const featuresRef = useReveal('up');
   const showcaseRef = useReveal('scale');
   const storyRef = useReveal('up');
-  const pricingRef = useReveal('up');
   const faqRef = useReveal('left');
   const finalRef = useReveal('scale');
 
@@ -123,7 +114,7 @@ export function LandingPage() {
           <button onClick={() => navigate('/signin')} className="font-nunito text-sm font-semibold text-echo-charcoal border-2 border-echo-charcoal/20 px-4 py-1.5 rounded-full active:scale-95 transition-transform" aria-label="Sign in">
             Sign In
           </button>
-          <button onClick={() => navigate('/pricing')} className="font-nunito text-sm font-extrabold text-white bg-echo-coral px-4 py-1.5 rounded-full active:scale-95 transition-transform" aria-label="Get started">
+          <button onClick={() => navigate('/signup')} className="font-nunito text-sm font-extrabold text-white bg-echo-coral px-4 py-1.5 rounded-full active:scale-95 transition-transform" aria-label="Get started">
             Get Started
           </button>
         </div>
@@ -140,7 +131,7 @@ export function LandingPage() {
         </p>
         <button
           ref={heroCTARef}
-          onClick={() => navigate('/pricing')}
+          onClick={() => navigate('/signup')}
           className="w-full max-w-xs mx-auto block py-4 rounded-full bg-echo-coral text-white font-extrabold text-base shadow-coral animate-cta-pulse active:scale-95 transition-transform mb-2"
           aria-label="Start capturing echoes"
         >
@@ -299,57 +290,6 @@ export function LandingPage() {
         </div>
       </section>
 
-      {/* ── S9: Pricing ───────────────────────────────── */}
-      <section ref={pricingRef} className="px-5 py-16">
-        <h2 className="font-extrabold text-xl text-echo-charcoal text-center mb-6">Simple pricing</h2>
-        <div className="space-y-4">
-          {/* Monthly */}
-          <div className="bg-white rounded-2xl p-4 shadow-soft">
-            <p className="font-bold text-sm text-echo-charcoal mb-2">Monthly</p>
-            <p className="mb-3">
-              <span className="font-extrabold text-2xl text-echo-charcoal">$10</span>
-              <span className="font-inter text-sm text-echo-gray">/month</span>
-            </p>
-            <ul className="space-y-2 mb-4">
-              {PRICING_FEATURES.map(f => (
-                <li key={f} className="flex items-start gap-2 text-xs text-echo-charcoal">
-                  <span className="text-echo-coral font-bold flex-shrink-0">✓</span>{f}
-                </li>
-              ))}
-            </ul>
-            <button onClick={() => navigate('/pricing')} className="w-full py-3.5 rounded-full border-2 border-echo-coral text-echo-coral font-extrabold text-sm active:scale-95 transition-transform" aria-label="Get started monthly">
-              Get Started
-            </button>
-          </div>
-
-          {/* Yearly */}
-          <div className="bg-white rounded-2xl shadow-soft border-t-4 border-echo-coral relative overflow-hidden">
-            <div className="absolute top-3 right-3">
-              <span className="bg-echo-coral text-white font-inter font-medium text-xs px-2.5 py-1 rounded-full">Best Value</span>
-            </div>
-            <div className="p-4 pt-5">
-              <p className="font-bold text-sm text-echo-charcoal mb-2">Yearly</p>
-              <p className="mb-1">
-                <span className="font-extrabold text-2xl text-echo-coral">$60</span>
-                <span className="font-inter text-sm text-echo-gray">/year</span>
-              </p>
-              <p className="font-inter text-xs text-echo-gray mb-3">Save 50%</p>
-              <ul className="space-y-2 mb-4">
-                {[...PRICING_FEATURES, 'Locked-in pricing'].map(f => (
-                  <li key={f} className="flex items-start gap-2 text-xs text-echo-charcoal">
-                    <span className="text-echo-coral font-bold flex-shrink-0">✓</span>{f}
-                  </li>
-                ))}
-              </ul>
-              <button onClick={() => navigate('/pricing')} className="w-full py-4 rounded-full bg-echo-coral text-white font-extrabold text-base shadow-coral active:scale-95 transition-transform" aria-label="Get started yearly best value">
-                Get Started — Best Value
-              </button>
-              <p className="font-inter text-xs text-echo-gray text-center mt-3">Cancel anytime</p>
-            </div>
-          </div>
-        </div>
-      </section>
-
       {/* ── S10: FAQ ──────────────────────────────────── */}
       <section ref={faqRef} className="px-5 py-12">
         <h2 className="font-extrabold text-xl text-echo-charcoal text-center mb-6">Common questions</h2>
@@ -373,7 +313,7 @@ export function LandingPage() {
       {/* ── S11: Final CTA ────────────────────────────── */}
       <section ref={finalRef} className="px-5 pt-16 pb-12 text-center">
         <p className="font-extrabold text-xl text-echo-charcoal mb-2">Their voice right now is worth saving.</p>
-        <button onClick={() => navigate('/pricing')} className="w-full py-4 rounded-full bg-echo-coral text-white font-extrabold text-base shadow-coral active:scale-95 transition-transform mt-6 mb-4" aria-label="Get started">
+        <button onClick={() => navigate('/signup')} className="w-full py-4 rounded-full bg-echo-coral text-white font-extrabold text-base shadow-coral active:scale-95 transition-transform mt-6 mb-4" aria-label="Get started">
           Get Started
         </button>
         <p className="font-inter text-xs text-echo-gray mb-8">
@@ -405,7 +345,7 @@ export function LandingPage() {
         style={{ boxShadow: '0 -2px 10px rgba(0,0,0,0.08)' }}
       >
         <div className="bg-white px-5 pt-3 pb-6 max-w-[480px] mx-auto" style={{ paddingBottom: 'max(24px, env(safe-area-inset-bottom, 24px))' }}>
-          <button onClick={() => navigate('/pricing')} className="w-full py-3.5 rounded-full bg-echo-coral text-white font-extrabold text-base active:scale-95 transition-transform" aria-label="Start capturing echoes">
+          <button onClick={() => navigate('/signup')} className="w-full py-3.5 rounded-full bg-echo-coral text-white font-extrabold text-base active:scale-95 transition-transform" aria-label="Start capturing echoes">
             Start Capturing Echoes
           </button>
         </div>
