@@ -18,6 +18,7 @@ import { TodayScreen } from '@/screens/today/TodayScreen';
 import { Memories } from '@/screens/Memories';
 import { VideoScreen } from '@/screens/VideoScreen';
 import { PaywallScreen } from '@/screens/PaywallScreen';
+import { LandingPage1 } from '@/screens/LandingPage1';
 import { Settings } from '@/screens/Settings';
 import { PaymentSuccessScreen } from '@/screens/auth/PaymentSuccessScreen';
 import { SignupScreen } from '@/screens/auth/SignupScreen';
@@ -45,6 +46,7 @@ function AppShell() {
         <Route path="/" element={<LandingPage />} />
         <Route path="/start" element={<Splash />} />
         <Route path="/onboarding" element={<Navigate to="/" replace />} />
+        <Route path="/home-1" element={<LandingPage1 />} />
         <Route path="/onboarding-1" element={<OnboardingFlow />} />
         <Route path="/onboarding-2" element={<OnboardingFlow2 />} />
         <Route path="/pricing" element={<PricingScreen />} />
