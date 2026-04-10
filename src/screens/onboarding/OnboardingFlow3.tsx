@@ -2,15 +2,7 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ParentChildIllustration } from '@/components/illustrations/ParentChildIllustration';
 
-const TOTAL = 7;
-
-const AGE_OPTIONS = [
-  { label: 'Under 2', value: 'under-2', icon: '👶' },
-  { label: '2–4', value: '2-4', icon: '🧸' },
-  { label: '4–6', value: '4-6', icon: '🎨' },
-  { label: '6–9', value: '6-9', icon: '🎒' },
-  { label: '9–12', value: '9-12', icon: '🏃' },
-];
+const TOTAL = 6;
 
 const EMOTION_OPTIONS = [
   { icon: '🎤', text: "The way they say 'I love you'", color: '#FF6B6B' },
@@ -40,8 +32,6 @@ function PhoneMockup({ src, alt, width = 120 }: { src: string; alt: string; widt
 export function OnboardingFlow3() {
   const [screen, setScreen] = useState(0);
   const [visible, setVisible] = useState(true);
-  const [childName, setChildName] = useState('');
-  const [ageGroup, setAgeGroup] = useState<string | null>(null);
   const [selectedEmotion, setSelectedEmotion] = useState<number | null>(null);
   const navigate = useNavigate();
 
@@ -104,70 +94,8 @@ export function OnboardingFlow3() {
           </div>
         )}
 
-        {/* ── SCREEN 2: Personalization ── */}
+        {/* ── SCREEN 2: Emotional Question ── */}
         {screen === 1 && (
-          <div className="flex flex-col w-full gap-5 pt-4 flex-1">
-            <div className="text-center space-y-2">
-              <h1 className="font-nunito font-extrabold text-[26px] leading-tight text-echo-charcoal dark:text-white">
-                Tell us about your little one 💛
-              </h1>
-              <p className="font-inter text-sm text-echo-gray">
-                This helps us pick the best questions for their age.
-              </p>
-            </div>
-
-            {/* Name input */}
-            <div className="space-y-2">
-              <label className="font-nunito font-bold text-sm text-echo-charcoal dark:text-white">
-                Their first name
-              </label>
-              <input
-                type="text"
-                value={childName}
-                onChange={(e) => setChildName(e.target.value)}
-                placeholder="e.g. Emma"
-                className="w-full px-4 py-3.5 rounded-2xl bg-white dark:bg-echo-dark-card border-2 border-echo-light-gray focus:border-echo-coral outline-none font-nunito text-base text-echo-charcoal dark:text-white placeholder:text-echo-gray/50 transition-colors"
-                autoFocus
-              />
-            </div>
-
-            {/* Age selector */}
-            <div className="space-y-2">
-              <label className="font-nunito font-bold text-sm text-echo-charcoal dark:text-white">
-                How old are they?
-              </label>
-              <div className="flex flex-wrap gap-2">
-                {AGE_OPTIONS.map((opt) => (
-                  <button
-                    key={opt.value}
-                    onClick={() => setAgeGroup(opt.value)}
-                    className={`flex items-center gap-2 px-4 py-2.5 rounded-full border-2 font-nunito font-semibold text-sm transition-all active:scale-95 ${
-                      ageGroup === opt.value
-                        ? 'border-echo-coral bg-echo-coral/10 text-echo-coral'
-                        : 'border-echo-light-gray bg-white dark:bg-echo-dark-card text-echo-charcoal dark:text-white'
-                    }`}
-                  >
-                    <span>{opt.icon}</span>
-                    <span>{opt.label}</span>
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            <div className="mt-auto pt-4">
-              <button
-                onClick={advance}
-                disabled={!childName.trim() || !ageGroup}
-                className="w-full bg-echo-coral text-white font-nunito font-bold text-base py-4 rounded-full shadow-coral active:scale-95 transition-transform disabled:opacity-40 disabled:active:scale-100"
-              >
-                Continue
-              </button>
-            </div>
-          </div>
-        )}
-
-        {/* ── SCREEN 3: Emotional Question ── */}
-        {screen === 2 && (
           <div className="flex flex-col w-full gap-6 pt-4 flex-1">
             <div className="text-center space-y-2">
               <h1 className="font-nunito font-extrabold text-[24px] leading-tight text-echo-charcoal dark:text-white">
@@ -217,12 +145,11 @@ export function OnboardingFlow3() {
           </div>
         )}
 
-        {/* ── SCREEN 4: Product Preview (Carousel) ── */}
-        {/* ── SCREENS 4–6: Feature Pages ── */}
-        {screen >= 3 && screen <= 5 && (() => {
-          const feat = FEATURES[screen - 3];
+        {/* ── SCREENS 3–5: Feature Pages ── */}
+        {screen >= 2 && screen <= 4 && (() => {
+          const feat = FEATURES[screen - 2];
           if (!feat) return null;
-          const stepNum = screen - 2; // 1, 2, 3
+          const stepNum = screen - 1; // 1, 2, 3
           return (
             <div className="flex flex-col items-center w-full gap-5 pt-2 flex-1">
               <p className="font-nunito font-bold text-xs text-echo-coral uppercase tracking-wider">
@@ -249,8 +176,8 @@ export function OnboardingFlow3() {
           );
         })()}
 
-        {/* ── SCREEN 7: Growth Showcase ── */}
-        {screen === 6 && (
+        {/* ── SCREEN 6: Growth Showcase ── */}
+        {screen === 5 && (
           <div className="flex flex-col items-center w-full gap-4 pt-2 flex-1">
             <div className="text-center space-y-2 max-w-xs">
               <h1 className="font-nunito font-extrabold text-[24px] leading-tight text-echo-charcoal dark:text-white whitespace-pre-line">
