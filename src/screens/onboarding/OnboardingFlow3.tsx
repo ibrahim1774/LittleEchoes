@@ -1,8 +1,7 @@
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { ParentChildIllustration } from '@/components/illustrations/ParentChildIllustration';
 
-const TOTAL = 6;
+const TOTAL = 7;
 
 const EMOTION_OPTIONS = [
   { icon: '🎤', text: "The way they say 'I love you'", color: '#FF6B6B' },
@@ -33,7 +32,31 @@ export function OnboardingFlow3() {
   const [screen, setScreen] = useState(0);
   const [visible, setVisible] = useState(true);
   const [selectedEmotion, setSelectedEmotion] = useState<number | null>(null);
-  const navigate = useNavigate();
+  const [selectedPlan, setSelectedPlan] = useState<'monthly' | 'yearly'>('yearly');
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
+
+  async function handleSubscribe() {
+    setLoading(true);
+    setError('');
+    try {
+      const res = await fetch('/api/create-checkout-session-3', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ plan: selectedPlan }),
+      });
+      const data = (await res.json()) as { url?: string; error?: string };
+      if (data.url) {
+        window.location.href = data.url;
+      } else {
+        setError(data.error ?? 'Something went wrong. Please try again.');
+        setLoading(false);
+      }
+    } catch {
+      setError('Network error. Please check your connection.');
+      setLoading(false);
+    }
+  }
 
   const progress = screen / (TOTAL - 1);
 
@@ -212,11 +235,118 @@ export function OnboardingFlow3() {
 
             <div className="mt-auto pt-3 w-full">
               <button
-                onClick={() => navigate('/signup')}
+                onClick={advance}
                 className="w-full bg-echo-coral text-white font-nunito font-bold text-base py-4 rounded-full shadow-coral active:scale-95 transition-transform"
               >
-                Get Started →
+                Continue →
               </button>
+            </div>
+          </div>
+        )}
+
+        {/* ── SCREEN 7: Paywall ($10/mo · 1-day trial, $60/yr · 3-day trial) ── */}
+        {screen === 6 && (
+          <div className="flex flex-col w-full gap-4 pt-2 flex-1">
+            <div className="text-center space-y-2">
+              <h1 className="font-nunito font-extrabold text-[24px] leading-tight text-echo-charcoal dark:text-white">
+                Start preserving their voice today
+              </h1>
+              <p className="font-inter text-sm text-echo-gray leading-relaxed">
+                Every day, their voice changes a little. Don't miss it.
+              </p>
+            </div>
+
+            {/* Highlighted trial badge — shows for the selected plan */}
+            <div className="rounded-2xl bg-echo-coral/10 px-4 py-3 text-center border-2 border-echo-coral/30">
+              <p className="font-nunito font-bold text-sm text-echo-coral">
+                {selectedPlan === 'yearly'
+                  ? '🎉 Try free for 3 days — cancel anytime'
+                  : '🎉 Try free for 1 day — cancel anytime'}
+              </p>
+            </div>
+
+            {/* Plan cards */}
+            <div className="space-y-2">
+              {/* Yearly */}
+              <button
+                onClick={() => setSelectedPlan('yearly')}
+                className={`w-full rounded-2xl px-4 py-3 border-2 text-left transition-all relative ${
+                  selectedPlan === 'yearly'
+                    ? 'border-echo-coral bg-echo-coral/5'
+                    : 'border-echo-light-gray bg-white dark:bg-echo-dark-card'
+                }`}
+              >
+                <div className="absolute -top-2.5 right-4 bg-echo-sunny text-echo-charcoal font-nunito font-bold text-xs px-3 py-0.5 rounded-full">
+                  Best Value — Save 50%
+                </div>
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="font-nunito font-bold text-sm text-echo-charcoal dark:text-white">Yearly</p>
+                    <p className="font-inter text-xs text-echo-gray mt-0.5">$5/mo — billed $60/year · 3-day free trial</p>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className="font-nunito font-extrabold text-lg text-echo-coral">$60</span>
+                    <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center transition-all ${
+                      selectedPlan === 'yearly' ? 'border-echo-coral bg-echo-coral' : 'border-echo-light-gray'
+                    }`}>
+                      {selectedPlan === 'yearly' && (
+                        <svg width="10" height="10" viewBox="0 0 10 10" fill="white">
+                          <path d="M2 5l2.5 2.5L8 2.5" stroke="white" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" fill="none"/>
+                        </svg>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              </button>
+
+              {/* Monthly */}
+              <button
+                onClick={() => setSelectedPlan('monthly')}
+                className={`w-full rounded-2xl px-4 py-3 border-2 text-left transition-all ${
+                  selectedPlan === 'monthly'
+                    ? 'border-echo-coral bg-echo-coral/5'
+                    : 'border-echo-light-gray bg-white dark:bg-echo-dark-card'
+                }`}
+              >
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="font-nunito font-bold text-sm text-echo-charcoal dark:text-white">Monthly</p>
+                    <p className="font-inter text-xs text-echo-gray mt-0.5">Billed monthly · 1-day free trial</p>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className="font-nunito font-extrabold text-lg text-echo-charcoal dark:text-white">$10</span>
+                    <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center transition-all ${
+                      selectedPlan === 'monthly' ? 'border-echo-coral bg-echo-coral' : 'border-echo-light-gray'
+                    }`}>
+                      {selectedPlan === 'monthly' && (
+                        <svg width="10" height="10" viewBox="0 0 10 10" fill="white">
+                          <path d="M2 5l2.5 2.5L8 2.5" stroke="white" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" fill="none"/>
+                        </svg>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              </button>
+            </div>
+
+            {error && (
+              <p className="font-inter text-xs text-red-500 text-center">{error}</p>
+            )}
+
+            <div className="mt-auto space-y-3 pt-2">
+              <button
+                onClick={() => void handleSubscribe()}
+                disabled={loading}
+                className="w-full py-4 rounded-full bg-echo-coral text-white font-nunito font-extrabold text-base shadow-coral active:scale-95 transition-transform disabled:opacity-60"
+              >
+                {loading ? 'Redirecting to checkout...' : 'Get Started for Free'}
+              </button>
+
+              <p className="font-inter text-xs text-echo-gray text-center">
+                {selectedPlan === 'yearly'
+                  ? "You won't be charged for 3 days. Cancel anytime."
+                  : "You won't be charged for 1 day. Cancel anytime."}
+              </p>
             </div>
           </div>
         )}

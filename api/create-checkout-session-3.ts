@@ -47,7 +47,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         },
       ],
       mode: 'subscription',
-      ...(plan === 'yearly' ? { subscription_data: { trial_period_days: 3 } } : {}),
+      subscription_data: {
+        trial_period_days: plan === 'yearly' ? 3 : 1,
+      },
       success_url: `${origin}/payment-success?session_id={CHECKOUT_SESSION_ID}&plan=${plan}&value=${value}`,
       cancel_url: `${origin}/onboarding-3`,
     });
