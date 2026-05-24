@@ -244,7 +244,7 @@ export function OnboardingFlow3() {
           </div>
         )}
 
-        {/* ── SCREEN 7: Paywall ($10/mo · 1-day trial, $60/yr · 3-day trial) ── */}
+        {/* ── SCREEN 7: Paywall ($10/mo · 1-day trial, $60/yr · 1-day trial) ── */}
         {screen === 6 && (
           <div className="flex flex-col w-full gap-4 pt-2 flex-1">
             <div className="text-center space-y-2">
@@ -259,9 +259,7 @@ export function OnboardingFlow3() {
             {/* Highlighted trial badge — shows for the selected plan */}
             <div className="rounded-2xl bg-echo-coral/10 px-4 py-3 text-center border-2 border-echo-coral/30">
               <p className="font-nunito font-bold text-sm text-echo-coral">
-                {selectedPlan === 'yearly'
-                  ? '🎉 Try free for 3 days — cancel anytime'
-                  : '🎉 Try free for 1 day — cancel anytime'}
+                🎉 Try free for 1 day — cancel anytime
               </p>
             </div>
 
@@ -282,7 +280,7 @@ export function OnboardingFlow3() {
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="font-nunito font-bold text-sm text-echo-charcoal dark:text-white">Yearly</p>
-                    <p className="font-inter text-xs text-echo-gray mt-0.5">$5/mo — billed $60/year · 3-day free trial</p>
+                    <p className="font-inter text-xs text-echo-gray mt-0.5">$5/mo — billed $60/year · 1-day free trial</p>
                   </div>
                   <div className="flex items-center gap-2">
                     <span className="font-nunito font-extrabold text-lg text-echo-coral">$60</span>
@@ -343,9 +341,7 @@ export function OnboardingFlow3() {
               </button>
 
               <p className="font-inter text-xs text-echo-gray text-center">
-                {selectedPlan === 'yearly'
-                  ? "You won't be charged for 3 days. Cancel anytime."
-                  : "You won't be charged for 1 day. Cancel anytime."}
+                You won't be charged for 1 day. Cancel anytime.
               </p>
             </div>
           </div>
