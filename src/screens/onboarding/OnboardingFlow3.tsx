@@ -38,7 +38,7 @@ type Plan = {
   tier: 'basic' | 'pro';
   price: string;
   priceUnit: string;
-  sublabel: string;
+  sublabel: React.ReactNode;
   trial: boolean;
   bestValue?: boolean;
   features: PlanFeature[];
@@ -67,7 +67,9 @@ const PLANS: Plan[] = [
     tier: 'pro',
     price: '$10',
     priceUnit: '/mo',
-    sublabel: 'Billed monthly',
+    sublabel: (
+      <>Audio and <span className="text-echo-coral font-extrabold">video</span> recording only</>
+    ),
     trial: true,
     features: [
       { icon: '🎙️', text: 'Everything in Basic' },
