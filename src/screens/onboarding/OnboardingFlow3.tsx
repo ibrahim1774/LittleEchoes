@@ -38,7 +38,7 @@ type Plan = {
   tier: 'basic' | 'pro';
   price: string;
   priceUnit: string;
-  sublabel: string;
+  sublabel: React.ReactNode;
   trial: boolean;
   bestValue?: boolean;
   features: PlanFeature[];
@@ -67,8 +67,10 @@ const PLANS: Plan[] = [
     tier: 'pro',
     price: '$10',
     priceUnit: '/mo',
-    sublabel: 'Billed monthly',
-    trial: true,
+    sublabel: (
+      <>Audio and <span className="text-echo-coral font-extrabold">video</span> recording — billed monthly</>
+    ),
+    trial: false,
     features: [
       { icon: '🎙️', text: 'Everything in Basic' },
       { icon: '📹', text: 'Daily video clips that can help you remember the little things' },
@@ -317,10 +319,12 @@ export function OnboardingFlow3() {
           const selected = PLANS.find((p) => p.key === selectedPlan)!;
           const ctaLabel = loading
             ? 'Redirecting to checkout...'
-            : selected.tier === 'pro'
+            : selected.trial
               ? 'Start My 1-Day Free Trial'
-              : 'Start Basic — $5/mo';
-          const footerNote = selected.tier === 'pro'
+              : selected.key === 'basic_monthly'
+                ? 'Start Basic — $5/mo'
+                : `Subscribe — ${selected.price}${selected.priceUnit}`;
+          const footerNote = selected.trial
             ? "You won't be charged for 1 day. Cancel anytime."
             : 'Billed monthly. Cancel anytime.';
 

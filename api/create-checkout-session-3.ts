@@ -26,7 +26,7 @@ const PLANS: Record<PlanKey, {
     nickname: 'LittleEchoes Pro Monthly',
     interval: 'month',
     tier: 'pro',
-    trial_days: 1,
+    trial_days: 0,
   },
   pro_yearly: {
     unit_amount: 6000, // $60.00
