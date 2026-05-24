@@ -10,6 +10,13 @@ import { getParent, getChildren, getStreak } from '@/services/storage';
 import { supabase } from '@/services/supabase';
 import { loadFromCloud } from '@/services/cloudSync';
 
+// Admin emails get unconditional Pro access — bypass paywall and tier gating
+// regardless of what the profiles table says. Compared case-insensitively.
+const ADMIN_EMAILS = new Set(['ibrahim3709@gmail.com']);
+function isAdmin(email: string | null | undefined): boolean {
+  return !!email && ADMIN_EMAILS.has(email.toLowerCase());
+}
+
 const initialState: AppState = {
   parent: null,
   children: [],
@@ -112,20 +119,27 @@ export function AppProvider({ children }: { children: ReactNode }) {
               const localPaid = localStorage.getItem('le_paid') === 'true';
               const localTierRaw = localStorage.getItem('le_tier');
               const localTier = localTierRaw === 'basic' || localTierRaw === 'pro' ? localTierRaw : null;
+              const adminOverride = isAdmin(user.email);
 
-              if (profilePaid || localPaid) {
+              if (profilePaid || localPaid || adminOverride) {
                 dispatch({ type: 'SET_PAID', payload: true });
               }
 
               // Resolve tier with back-compat: any paid user from a pre-tier funnel is Pro.
-              const resolvedTier: 'basic' | 'pro' | null =
-                profileTier ?? localTier ?? ((profilePaid || localPaid) ? 'pro' : null);
+              // Admin emails always resolve to Pro regardless of DB state.
+              const resolvedTier: 'basic' | 'pro' | null = adminOverride
+                ? 'pro'
+                : profileTier ?? localTier ?? ((profilePaid || localPaid) ? 'pro' : null);
 
               if (resolvedTier) {
                 dispatch({ type: 'SET_TIER', payload: resolvedTier });
               }
             } catch {
-              // Non-critical — default to unpaid
+              // Non-critical — but still honor admin override if profile read failed.
+              if (isAdmin(user.email)) {
+                dispatch({ type: 'SET_PAID', payload: true });
+                dispatch({ type: 'SET_TIER', payload: 'pro' });
+              }
             }
           }
         } catch {
