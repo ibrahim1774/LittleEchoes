@@ -17,6 +17,7 @@ import { Home } from '@/screens/Home';
 import { TodayScreen } from '@/screens/today/TodayScreen';
 import { Memories } from '@/screens/Memories';
 import { VideoScreen } from '@/screens/VideoScreen';
+import { VideoUpgradeScreen } from '@/screens/VideoUpgradeScreen';
 import { PaywallScreen } from '@/screens/PaywallScreen';
 import { LandingPage1 } from '@/screens/LandingPage1';
 import { Settings } from '@/screens/Settings';
@@ -81,6 +82,7 @@ function AppShell() {
           element={
             !state.isOnboarded ? <Navigate to="/" replace /> :
             !state.isPaid ? <Navigate to="/paywall" replace /> :
+            state.tier === 'basic' ? <VideoUpgradeScreen /> :
             <VideoScreen />
           }
         />

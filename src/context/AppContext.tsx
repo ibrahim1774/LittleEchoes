@@ -21,6 +21,7 @@ const initialState: AppState = {
   todayProgress: null,
   todayVideoRecorded: false,
   isPaid: false,
+  tier: null,
   streak: null,
   isLoading: true,
   user: null,
@@ -69,6 +70,8 @@ function reducer(state: AppState, action: AppAction): AppState {
       return { ...state, todayVideoRecorded: action.payload };
     case 'SET_PAID':
       return { ...state, isPaid: action.payload };
+    case 'SET_TIER':
+      return { ...state, tier: action.payload };
     default:
       return state;
   }
@@ -96,19 +99,30 @@ export function AppProvider({ children }: { children: ReactNode }) {
             dispatch({ type: 'SET_USER', payload: user });
             // Sync from cloud so deletions and new data from other devices are reflected
             await loadFromCloud(user);
-            // Check paid status
+            // Check paid status + tier
             try {
               const { data: profileData } = await supabase
                 .from('profiles')
-                .select('paid')
+                .select('paid, tier')
                 .eq('id', user.id)
                 .single();
-              if (profileData?.paid) {
+
+              const profilePaid = profileData?.paid === true;
+              const profileTier = profileData?.tier as 'basic' | 'pro' | null | undefined;
+              const localPaid = localStorage.getItem('le_paid') === 'true';
+              const localTierRaw = localStorage.getItem('le_tier');
+              const localTier = localTierRaw === 'basic' || localTierRaw === 'pro' ? localTierRaw : null;
+
+              if (profilePaid || localPaid) {
                 dispatch({ type: 'SET_PAID', payload: true });
               }
-              // Also check localStorage fallback (set by PaymentSuccessScreen before signup)
-              if (localStorage.getItem('le_paid') === 'true') {
-                dispatch({ type: 'SET_PAID', payload: true });
+
+              // Resolve tier with back-compat: any paid user from a pre-tier funnel is Pro.
+              const resolvedTier: 'basic' | 'pro' | null =
+                profileTier ?? localTier ?? ((profilePaid || localPaid) ? 'pro' : null);
+
+              if (resolvedTier) {
+                dispatch({ type: 'SET_TIER', payload: resolvedTier });
               }
             } catch {
               // Non-critical — default to unpaid

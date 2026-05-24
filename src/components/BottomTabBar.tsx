@@ -11,6 +11,7 @@ const tabs = [
 
 export function BottomTabBar() {
   const { state } = useApp();
+  const showLockOnVideo = state.tier === 'basic';
 
   return (
     <nav
@@ -38,11 +39,21 @@ export function BottomTabBar() {
               {isActive && (
                 <span className="absolute top-1 w-1 h-1 rounded-full bg-echo-coral" />
               )}
-              <Icon
-                className={`${featured ? 'w-7 h-7' : 'w-6 h-6'} transition-transform ${
-                  isActive ? 'scale-110' : ''
-                }`}
-              />
+              <div className="relative">
+                <Icon
+                  className={`${featured ? 'w-7 h-7' : 'w-6 h-6'} transition-transform ${
+                    isActive ? 'scale-110' : ''
+                  }`}
+                />
+                {to === '/videos' && showLockOnVideo && (
+                  <span
+                    className="absolute -top-1 -right-1.5 bg-echo-charcoal text-white rounded-full w-3.5 h-3.5 flex items-center justify-center text-[8px]"
+                    aria-label="Pro feature"
+                  >
+                    🔒
+                  </span>
+                )}
+              </div>
               <span
                 className={`font-nunito text-[10px] font-600 ${
                   isActive ? 'text-echo-coral' : 'text-echo-gray dark:text-echo-gray'

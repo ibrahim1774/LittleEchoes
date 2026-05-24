@@ -49,7 +49,37 @@ const DAY_LABELS: Record<string, string> = {
 export function Settings() {
   const { state, dispatch } = useApp();
   const navigate = useNavigate();
-  const { parent, activeChild, darkMode, user } = state;
+  const { parent, activeChild, darkMode, user, tier } = state;
+
+  // Subscription / billing portal
+  const [portalLoading, setPortalLoading] = useState(false);
+  const [portalError, setPortalError] = useState('');
+
+  async function openBillingPortal() {
+    if (!user?.email) {
+      setPortalError('Please sign in again to manage your subscription.');
+      return;
+    }
+    setPortalLoading(true);
+    setPortalError('');
+    try {
+      const res = await fetch('/api/create-portal-session', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: user.email }),
+      });
+      const data = (await res.json()) as { url?: string; error?: string };
+      if (data.url) {
+        window.location.href = data.url;
+      } else {
+        setPortalError(data.error ?? 'Could not open the billing portal. Please try again.');
+        setPortalLoading(false);
+      }
+    } catch {
+      setPortalError('Network error. Please check your connection.');
+      setPortalLoading(false);
+    }
+  }
 
   // Parent name edit
   const [editingParent, setEditingParent] = useState(false);
@@ -468,6 +498,58 @@ export function Settings() {
           </div>
         </div>
 
+
+        {/* Subscription */}
+        {tier && (
+          <div className="bg-white dark:bg-echo-dark-card rounded-2xl p-4 shadow-soft">
+            <p className="font-inter text-xs text-echo-gray uppercase tracking-wide mb-3">Subscription</p>
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="font-nunito font-bold text-echo-charcoal dark:text-white text-sm">
+                  {tier === 'pro' ? 'Pro' : 'Basic'}
+                </p>
+                <p className="font-inter text-xs text-echo-gray mt-0.5">
+                  {tier === 'pro'
+                    ? 'Audio + video moments included'
+                    : 'Audio recordings only — video is a Pro feature'}
+                </p>
+              </div>
+              <span
+                className={`font-nunito font-bold text-xs px-3 py-1 rounded-full ${
+                  tier === 'pro'
+                    ? 'bg-echo-coral/15 text-echo-coral'
+                    : 'bg-echo-light-gray text-echo-gray'
+                }`}
+              >
+                {tier === 'pro' ? 'PRO' : 'BASIC'}
+              </span>
+            </div>
+
+            {tier === 'basic' && (
+              <button
+                onClick={() => void openBillingPortal()}
+                disabled={portalLoading}
+                className="w-full mt-3 py-2.5 rounded-xl bg-echo-coral text-white font-nunito font-bold text-sm active:scale-95 transition-transform disabled:opacity-60"
+              >
+                {portalLoading ? 'Opening...' : 'Upgrade to Pro'}
+              </button>
+            )}
+
+            {tier === 'pro' && (
+              <button
+                onClick={() => void openBillingPortal()}
+                disabled={portalLoading}
+                className="w-full mt-3 py-2.5 rounded-xl border-2 border-echo-gray/30 text-echo-gray font-nunito font-bold text-sm active:scale-95 transition-transform disabled:opacity-60"
+              >
+                {portalLoading ? 'Opening...' : 'Manage subscription'}
+              </button>
+            )}
+
+            {portalError && (
+              <p className="font-inter text-xs text-red-500 text-center mt-2">{portalError}</p>
+            )}
+          </div>
+        )}
 
         {/* About */}
         <div className="bg-white dark:bg-echo-dark-card rounded-2xl p-4 shadow-soft">

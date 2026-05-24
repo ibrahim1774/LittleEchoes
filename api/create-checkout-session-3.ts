@@ -5,16 +5,35 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
   apiVersion: '2025-01-27.acacia',
 });
 
-const PRICES = {
-  monthly: {
-    unit_amount: 1000, // $10.00
-    nickname: 'LittleEchoes Monthly',
-    interval: 'month' as const,
+type PlanKey = 'basic_monthly' | 'pro_monthly' | 'pro_yearly';
+
+const PLANS: Record<PlanKey, {
+  unit_amount: number;
+  nickname: string;
+  interval: 'month' | 'year';
+  tier: 'basic' | 'pro';
+  trial_days: number;
+}> = {
+  basic_monthly: {
+    unit_amount: 500, // $5.00
+    nickname: 'LittleEchoes Basic (Audio only)',
+    interval: 'month',
+    tier: 'basic',
+    trial_days: 0,
   },
-  yearly: {
+  pro_monthly: {
+    unit_amount: 1000, // $10.00
+    nickname: 'LittleEchoes Pro Monthly',
+    interval: 'month',
+    tier: 'pro',
+    trial_days: 1,
+  },
+  pro_yearly: {
     unit_amount: 6000, // $60.00
-    nickname: 'LittleEchoes Yearly',
-    interval: 'year' as const,
+    nickname: 'LittleEchoes Pro Yearly',
+    interval: 'year',
+    tier: 'pro',
+    trial_days: 1,
   },
 };
 
@@ -23,14 +42,14 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
-  const { plan } = req.body as { plan: 'monthly' | 'yearly' };
-  if (!plan || !PRICES[plan]) {
+  const { plan } = req.body as { plan: PlanKey };
+  if (!plan || !PLANS[plan]) {
     return res.status(400).json({ error: 'Invalid plan' });
   }
 
   const origin = req.headers.origin ?? 'https://littleechoes.vercel.app';
-  const price = PRICES[plan];
-  const value = (price.unit_amount / 100).toFixed(2);
+  const config = PLANS[plan];
+  const value = (config.unit_amount / 100).toFixed(2);
 
   try {
     const session = await stripe.checkout.sessions.create({
@@ -39,18 +58,19 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         {
           price_data: {
             currency: 'usd',
-            product_data: { name: price.nickname },
-            recurring: { interval: price.interval },
-            unit_amount: price.unit_amount,
+            product_data: { name: config.nickname },
+            recurring: { interval: config.interval },
+            unit_amount: config.unit_amount,
           },
           quantity: 1,
         },
       ],
       mode: 'subscription',
       subscription_data: {
-        trial_period_days: plan === 'yearly' ? 3 : 1,
+        ...(config.trial_days > 0 ? { trial_period_days: config.trial_days } : {}),
+        metadata: { tier: config.tier, plan },
       },
-      success_url: `${origin}/payment-success?session_id={CHECKOUT_SESSION_ID}&plan=${plan}&value=${value}`,
+      success_url: `${origin}/payment-success?session_id={CHECKOUT_SESSION_ID}&plan=${plan}&tier=${config.tier}&value=${value}`,
       cancel_url: `${origin}/onboarding-3`,
     });
 
