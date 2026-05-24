@@ -17,6 +17,8 @@ export function PaymentSuccessScreen() {
 
   useEffect(() => {
     const plan = searchParams.get('plan') ?? 'monthly';
+    const tierParam = searchParams.get('tier');
+    const tier: 'basic' | 'pro' = tierParam === 'basic' ? 'basic' : 'pro';
     const valueParam = searchParams.get('value');
     const value = valueParam ? parseFloat(valueParam) : (PLAN_VALUES[plan] ?? 9.99);
     const eventId = crypto.randomUUID();
@@ -40,13 +42,15 @@ export function PaymentSuccessScreen() {
       }),
     });
 
-    // Mark as paid — store in localStorage (for pre-signup flow) and Supabase (if already signed in)
+    // Mark as paid + tier — store in localStorage (for pre-signup flow) and Supabase (if already signed in)
     localStorage.setItem('le_paid', 'true');
+    localStorage.setItem('le_tier', tier);
     dispatch({ type: 'SET_PAID', payload: true });
+    dispatch({ type: 'SET_TIER', payload: tier });
 
-    // If user is already authenticated, set paid in Supabase and go to dashboard
+    // If user is already authenticated, set paid + tier in Supabase and go to dashboard
     if (state.user) {
-      void supabase.from('profiles').update({ paid: true }).eq('id', state.user.id);
+      void supabase.from('profiles').update({ paid: true, tier }).eq('id', state.user.id);
       const timer = setTimeout(() => {
         navigate('/home', { replace: true });
       }, 2500);

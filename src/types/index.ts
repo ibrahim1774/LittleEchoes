@@ -115,6 +115,7 @@ export interface AppState {
   streak: Streak | null;
   todayVideoRecorded: boolean;
   isPaid: boolean;
+  tier: 'basic' | 'pro' | null;
   isLoading: boolean;
   user: AuthUser | null;
 }
@@ -133,7 +134,8 @@ export type AppAction =
   | { type: 'SET_USER'; payload: AuthUser | null }
   | { type: 'SET_TODAY_PROGRESS'; payload: TodayProgress | null }
   | { type: 'SET_TODAY_VIDEO_RECORDED'; payload: boolean }
-  | { type: 'SET_PAID'; payload: boolean };
+  | { type: 'SET_PAID'; payload: boolean }
+  | { type: 'SET_TIER'; payload: 'basic' | 'pro' | null };
 
 /*
  * ============================================================
