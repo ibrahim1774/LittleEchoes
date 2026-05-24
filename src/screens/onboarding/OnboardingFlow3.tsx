@@ -67,7 +67,7 @@ const PLANS: Plan[] = [
     tier: 'pro',
     price: '$10',
     priceUnit: '/mo',
-    sublabel: 'Billed monthly · 1-day free trial',
+    sublabel: 'Billed monthly',
     trial: true,
     features: [
       { icon: '🎙️', text: 'Everything in Basic' },
@@ -83,7 +83,7 @@ const PLANS: Plan[] = [
     tier: 'pro',
     price: '$60',
     priceUnit: '/yr',
-    sublabel: '$5/mo — billed $60/year · 1-day free trial',
+    sublabel: '$5/mo — billed $60/year',
     trial: true,
     bestValue: true,
     features: [
@@ -100,7 +100,7 @@ export function OnboardingFlow3() {
   const [screen, setScreen] = useState(0);
   const [visible, setVisible] = useState(true);
   const [selectedEmotion, setSelectedEmotion] = useState<number | null>(null);
-  const [selectedPlan, setSelectedPlan] = useState<PlanKey>('pro_yearly');
+  const [selectedPlan, setSelectedPlan] = useState<PlanKey>('pro_monthly');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
@@ -335,17 +335,8 @@ export function OnboardingFlow3() {
                 </p>
               </div>
 
-              {/* Trial badge — only for Pro plans */}
-              {selected.trial && (
-                <div className="rounded-2xl bg-echo-coral/10 px-4 py-3 text-center border-2 border-echo-coral/30">
-                  <p className="font-nunito font-bold text-sm text-echo-coral">
-                    🎉 Try free for 1 day — cancel anytime
-                  </p>
-                </div>
-              )}
-
               {/* Plan cards */}
-              <div className="space-y-2.5">
+              <div className="space-y-4">
                 {PLANS.map((plan) => {
                   const isSelected = selectedPlan === plan.key;
                   return (
@@ -358,8 +349,13 @@ export function OnboardingFlow3() {
                           : 'border-echo-light-gray bg-white dark:bg-echo-dark-card'
                       }`}
                     >
+                      {plan.trial && (
+                        <div className="absolute -top-2.5 left-4 bg-echo-coral text-white font-nunito font-extrabold text-[11px] px-2.5 py-0.5 rounded-full shadow-coral whitespace-nowrap">
+                          🎉 1-Day Free Trial
+                        </div>
+                      )}
                       {plan.bestValue && (
-                        <div className="absolute -top-2.5 right-4 bg-echo-sunny text-echo-charcoal font-nunito font-bold text-xs px-3 py-0.5 rounded-full">
+                        <div className="absolute -top-2.5 right-4 bg-echo-sunny text-echo-charcoal font-nunito font-bold text-[11px] px-2.5 py-0.5 rounded-full whitespace-nowrap">
                           Best Value — Save 50%
                         </div>
                       )}
