@@ -13,7 +13,7 @@ import { loadFromCloud } from '@/services/cloudSync';
 // Admin emails get unconditional Pro access — bypass paywall and tier gating
 // regardless of what the profiles table says. Compared case-insensitively.
 const ADMIN_EMAILS = new Set(['ibrahim3709@gmail.com']);
-function isAdmin(email: string | null | undefined): boolean {
+export function isAdmin(email: string | null | undefined): boolean {
   return !!email && ADMIN_EMAILS.has(email.toLowerCase());
 }
 
@@ -172,10 +172,13 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
     // Keep user in sync with Supabase auth state changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-      dispatch({
-        type: 'SET_USER',
-        payload: session?.user ? { id: session.user.id, email: session.user.email ?? '' } : null,
-      });
+      const u = session?.user ? { id: session.user.id, email: session.user.email ?? '' } : null;
+      dispatch({ type: 'SET_USER', payload: u });
+      // Admin emails always get Pro on any auth event (signin, token refresh, etc.)
+      if (u && isAdmin(u.email)) {
+        dispatch({ type: 'SET_PAID', payload: true });
+        dispatch({ type: 'SET_TIER', payload: 'pro' });
+      }
     });
     return () => subscription.unsubscribe();
   }, []);
