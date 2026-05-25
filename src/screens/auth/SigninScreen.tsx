@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/services/supabase';
-import { useApp } from '@/context/AppContext';
+import { useApp, isAdmin } from '@/context/AppContext';
 import { loadFromCloud } from '@/services/cloudSync';
 import { getParent, getChildren, getStreak } from '@/services/storage';
 
@@ -46,13 +46,24 @@ export function SigninScreen() {
       }
     }
 
-    // Check paid status
-    let isPaid = false;
+    // Check paid status — admin emails always count as paid+pro
+    const adminUser = isAdmin(data.user.email);
+    let isPaid = adminUser;
     try {
-      const { data: profileData } = await supabase.from('profiles').select('paid').eq('id', data.user.id).single();
-      isPaid = !!profileData?.paid;
+      const { data: profileData } = await supabase.from('profiles').select('paid, tier').eq('id', data.user.id).single();
+      isPaid = isPaid || !!profileData?.paid;
       if (isPaid) dispatch({ type: 'SET_PAID', payload: true });
-    } catch { /* non-critical */ }
+      const profileTier = profileData?.tier as 'basic' | 'pro' | null | undefined;
+      const resolvedTier: 'basic' | 'pro' | null = adminUser
+        ? 'pro'
+        : profileTier ?? (isPaid ? 'pro' : null);
+      if (resolvedTier) dispatch({ type: 'SET_TIER', payload: resolvedTier });
+    } catch {
+      if (adminUser) {
+        dispatch({ type: 'SET_PAID', payload: true });
+        dispatch({ type: 'SET_TIER', payload: 'pro' });
+      }
+    }
 
     // Route: no profile → setup, unpaid → paywall, paid → home
     const parentLoaded = await getParent();
@@ -94,12 +105,23 @@ export function SigninScreen() {
         }
       }
 
-      let isPaid = false;
+      const adminUser = isAdmin(data.user.email);
+      let isPaid = adminUser;
       try {
-        const { data: profileData } = await supabase.from('profiles').select('paid').eq('id', data.user.id).single();
-        isPaid = !!profileData?.paid;
+        const { data: profileData } = await supabase.from('profiles').select('paid, tier').eq('id', data.user.id).single();
+        isPaid = isPaid || !!profileData?.paid;
         if (isPaid) dispatch({ type: 'SET_PAID', payload: true });
-      } catch { /* non-critical */ }
+        const profileTier = profileData?.tier as 'basic' | 'pro' | null | undefined;
+        const resolvedTier: 'basic' | 'pro' | null = adminUser
+          ? 'pro'
+          : profileTier ?? (isPaid ? 'pro' : null);
+        if (resolvedTier) dispatch({ type: 'SET_TIER', payload: resolvedTier });
+      } catch {
+        if (adminUser) {
+          dispatch({ type: 'SET_PAID', payload: true });
+          dispatch({ type: 'SET_TIER', payload: 'pro' });
+        }
+      }
 
       const parentLoaded = await getParent();
       if (!parentLoaded) {
