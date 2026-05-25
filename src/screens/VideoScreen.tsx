@@ -2,7 +2,6 @@ import { useState, useEffect, useRef } from 'react';
 import { useApp } from '@/context/AppContext';
 import { saveVideo, getTodayVideo, getVideosByChild, deleteVideo } from '@/services/storage';
 import { syncToCloud, downloadVideoFromCloud, deleteVideoFromCloud } from '@/services/cloudSync';
-import { supabase } from '@/services/supabase';
 import { useVideoRecording } from '@/hooks/useVideoRecording';
 import type { VideoClip } from '@/types';
 
@@ -148,9 +147,6 @@ export function VideoScreen() {
     if (!videoBlob || !activeChild) return;
     setSaving(true);
 
-    const ext = mimeType.includes('mp4') ? 'mp4' : 'webm';
-    const contentType = mimeType.includes('mp4') ? 'video/mp4' : 'video/webm';
-
     const clip: VideoClip = {
       id: generateId(),
       childId: activeChild.id,
@@ -162,34 +158,30 @@ export function VideoScreen() {
       createdAt: new Date().toISOString(),
     };
 
-    // Upload to Supabase Storage immediately
-    let videoUrl: string | undefined;
-    if (state.user) {
-      const path = `${state.user.id}/${clip.id}.${ext}`;
-      const { error } = await supabase.storage
-        .from('videos')
-        .upload(path, videoBlob, { contentType, upsert: true });
-      if (!error) {
-        videoUrl = path;
-        clip.videoUrl = path;
-      } else {
-        console.error('[VideoSave] Storage upload failed:', error.message);
-      }
-    }
-
     try {
+      // Save locally first — instant, works offline. The upload to Supabase
+      // Storage happens in the background via syncToCloud, which is idempotent
+      // and will retry on the next sync if anything fails.
       await saveVideo(clip);
-    } catch {
-      await saveVideo({ ...clip, videoBlob: undefined, videoUrl });
+
+      dispatch({ type: 'SET_TODAY_VIDEO_RECORDED', payload: true });
+      setCaption('');
+      reset();
+      setPhase('saved');
+
+      if (state.user) {
+        // Fire-and-forget: don't block the UI on the network. syncToCloud
+        // uploads the blob to the videos bucket and writes back videoUrl.
+        void syncToCloud(state.user);
+      }
+    } catch (err) {
+      console.error('[VideoSave] Local save failed:', err);
+      alert("Couldn't save the video. Your device may be out of storage — try freeing up space and recording again.");
+    } finally {
+      // Guaranteed to run even if Dexie put or any prior step throws —
+      // prevents the "Saving..." button from getting stuck forever.
+      setSaving(false);
     }
-
-    if (state.user) void syncToCloud(state.user);
-
-    dispatch({ type: 'SET_TODAY_VIDEO_RECORDED', payload: true });
-    setCaption('');
-    reset();
-    setSaving(false);
-    setPhase('saved');
   }
 
   function handleDeleteClip(clipId: string, clipVideoUrl?: string) {
