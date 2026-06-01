@@ -71,7 +71,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         metadata: { tier: config.tier, plan },
       },
       success_url: `${origin}/payment-success?session_id={CHECKOUT_SESSION_ID}&plan=${plan}&tier=${config.tier}&value=${value}`,
-      cancel_url: `${origin}/onboarding-3`,
+      cancel_url: `${origin}/onboarding-3/plans`,
     });
 
     return res.status(200).json({ url: session.url });

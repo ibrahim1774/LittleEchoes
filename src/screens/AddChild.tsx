@@ -62,8 +62,14 @@ export function AddChild() {
     if (showConfetti) {
       const timer = setTimeout(() => {
         dispatch({ type: 'SET_ONBOARDED', payload: true });
-        // Route guard on /home will redirect to /paywall if unpaid
-        navigate('/home', { replace: true });
+        // onboarding-3 flow: child is saved, now show the paywall before /home.
+        if (sessionStorage.getItem('le_onboarding3') === 'true') {
+          sessionStorage.removeItem('le_onboarding3');
+          navigate('/onboarding-3/plans', { replace: true });
+        } else {
+          // Route guard on /home will redirect to /paywall if unpaid
+          navigate('/home', { replace: true });
+        }
       }, 2000);
       return () => clearTimeout(timer);
     }
