@@ -77,6 +77,14 @@ export function LandingPage() {
     return () => obs.disconnect();
   }, []);
 
+  // Start the same funnel as onboarding-3: sign up → setup → name child →
+  // 3-plan paywall with free trial (/onboarding-3/plans). The flag tells
+  // AddChild to route to that trial paywall instead of the generic /paywall.
+  const startSignup = useCallback(() => {
+    sessionStorage.setItem('le_onboarding3', 'true');
+    navigate('/signup');
+  }, [navigate]);
+
   const toggleFaq = useCallback((i: number) => {
     setOpenFaq(prev => {
       const next = new Set(prev);
@@ -114,7 +122,7 @@ export function LandingPage() {
           <button onClick={() => navigate('/signin')} className="font-nunito text-sm font-semibold text-echo-charcoal border-2 border-echo-charcoal/20 px-4 py-1.5 rounded-full active:scale-95 transition-transform" aria-label="Sign in">
             Sign In
           </button>
-          <button onClick={() => navigate('/signup')} className="font-nunito text-sm font-extrabold text-white bg-echo-coral px-4 py-1.5 rounded-full active:scale-95 transition-transform" aria-label="Get started">
+          <button onClick={startSignup} className="font-nunito text-sm font-extrabold text-white bg-echo-coral px-4 py-1.5 rounded-full active:scale-95 transition-transform" aria-label="Get started for free">
             Get Started
           </button>
         </div>
@@ -131,13 +139,13 @@ export function LandingPage() {
         </p>
         <button
           ref={heroCTARef}
-          onClick={() => navigate('/signup')}
+          onClick={startSignup}
           className="w-full max-w-xs mx-auto block py-4 rounded-full bg-echo-coral text-white font-extrabold text-base shadow-coral animate-cta-pulse active:scale-95 transition-transform mb-2"
-          aria-label="Start capturing echoes"
+          aria-label="Get started for free today"
         >
-          Start Capturing Echoes
+          Get Started for Free Today
         </button>
-        <p className="font-inter text-xs text-echo-gray mb-8">Cancel anytime</p>
+        <p className="font-inter text-xs text-echo-gray mb-8">Free trial · Cancel anytime</p>
 
         {/* Phone mockup with glow */}
         <div className="relative flex justify-center">
@@ -313,8 +321,8 @@ export function LandingPage() {
       {/* ── S11: Final CTA ────────────────────────────── */}
       <section ref={finalRef} className="px-5 pt-16 pb-12 text-center">
         <p className="font-extrabold text-xl text-echo-charcoal mb-2">Their voice right now is worth saving.</p>
-        <button onClick={() => navigate('/signup')} className="w-full py-4 rounded-full bg-echo-coral text-white font-extrabold text-base shadow-coral active:scale-95 transition-transform mt-6 mb-4" aria-label="Get started">
-          Get Started
+        <button onClick={startSignup} className="w-full py-4 rounded-full bg-echo-coral text-white font-extrabold text-base shadow-coral active:scale-95 transition-transform mt-6 mb-4" aria-label="Get started for free">
+          Get Started for Free Today
         </button>
         <p className="font-inter text-xs text-echo-gray mb-8">
           Already have an account?{' '}
@@ -345,8 +353,8 @@ export function LandingPage() {
         style={{ boxShadow: '0 -2px 10px rgba(0,0,0,0.08)' }}
       >
         <div className="bg-white px-5 pt-3 pb-6 max-w-[480px] mx-auto" style={{ paddingBottom: 'max(24px, env(safe-area-inset-bottom, 24px))' }}>
-          <button onClick={() => navigate('/signup')} className="w-full py-3.5 rounded-full bg-echo-coral text-white font-extrabold text-base active:scale-95 transition-transform" aria-label="Start capturing echoes">
-            Start Capturing Echoes
+          <button onClick={startSignup} className="w-full py-3.5 rounded-full bg-echo-coral text-white font-extrabold text-base active:scale-95 transition-transform" aria-label="Get started for free today">
+            Get Started for Free Today
           </button>
         </div>
       </div>

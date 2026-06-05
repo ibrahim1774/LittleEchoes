@@ -101,10 +101,10 @@ export function OnboardingPaywall3() {
   const ctaLabel = loading
     ? 'Redirecting to checkout...'
     : selected.tier === 'pro'
-      ? 'Start My 1-Day Free Trial'
+      ? 'Start Your Free Trial'
       : 'Start Basic — $5/mo';
   const footerNote = selected.tier === 'pro'
-    ? "You won't be charged for 1 day. Cancel anytime."
+    ? 'Cancel anytime.'
     : 'Billed monthly. Cancel anytime.';
 
   return (
@@ -136,7 +136,7 @@ export function OnboardingPaywall3() {
                 >
                   {plan.trial && (
                     <div className="absolute -top-2.5 left-4 bg-echo-coral text-white font-nunito font-extrabold text-[11px] px-2.5 py-0.5 rounded-full shadow-coral whitespace-nowrap">
-                      🎉 1-Day Free Trial
+                      🎉 Free Trial
                     </div>
                   )}
                   {plan.bestValue && (
